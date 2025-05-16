@@ -127,7 +127,7 @@ st.markdown("""
     }
 
     /* Hide the Streamlit toolbar and header */
-    [data-testid="stToolbar"], header[data-testid="stHeader"] {
+    [data-testid="form-card"], header[data-testid="stHeader"] {
         display: none;
     }
 
@@ -360,39 +360,38 @@ with tab1:
     st.write("Interested in our resin-based furniture? Fill out the form below!")
 
     with st.form("enquiry_form"):
-        # Wrap the form fields (excluding the submit button) in a container with the card style
-        with st.container():
-            st.markdown('<div class="form-card">', unsafe_allow_html=True)
-            name = st.text_input("Full Name")
-            email = st.text_input("Email Address")
-            phone = st.text_input("Phone Number")
-            furniture_types = st.multiselect(
-                "Furniture Types",
-                [
-                    "Resin Furniture- Coffee Table",
-                    "Resin Furniture-Center Table",
-                    "Resin Furniture- Wall Panels",
-                    "Resin Furniture- Dining Table",
-                    "Resin Furniture- Conference Table",
-                    "Wall Decors - Geocode Wall Art",
-                    "Wall Decors-Ocean Inspired Wall Panels",
-                    "Wall Decors - Resin Wall Clock",
-                    "Functional Decors - Theme Based Coaster Set",
-                    "Functional Decors - Wood Resin Trays",
-                    "Functional Decors - Customized Name Plates",
-                    "Preservation Arts - Wedding Varmala's & Florals",
-                    "Preservation Art - Umbilical Cords",
-                    "Preservation Art - Pet Keepsakes",
-                    "Corporate Corner - Corporate Gifting",
-                    "Corporate Corner - Resin Trophies & Medals",
-                    "Corporate Corner - Artistic Resin Furniture & Corporate Spaces"
-                ],
-                default=[]  # No default selections
-            )
-            message = st.text_area("Message/Requirements")
-            st.markdown('</div>', unsafe_allow_html=True)
+        # Wrap the form fields in a card
+        st.markdown('<div class="form-card">', unsafe_allow_html=True)
+        name = st.text_input("Full Name")
+        email = st.text_input("Email Address")
+        phone = st.text_input("Phone Number")
+        furniture_types = st.multiselect(
+            "Furniture Types",
+            [
+                "Resin Furniture- Coffee Table",
+                "Resin Furniture-Center Table",
+                "Resin Furniture- Wall Panels",
+                "Resin Furniture- Dining Table",
+                "Resin Furniture- Conference Table",
+                "Wall Decors - Geocode Wall Art",
+                "Wall Decors-Ocean Inspired Wall Panels",
+                "Wall Decors - Resin Wall Clock",
+                "Functional Decors - Theme Based Coaster Set",
+                "Functional Decors - Wood Resin Trays",
+                "Functional Decors - Customized Name Plates",
+                "Preservation Arts - Wedding Varmala's & Florals",
+                "Preservation Art - Umbilical Cords",
+                "Preservation Art - Pet Keepsakes",
+                "Corporate Corner - Corporate Gifting",
+                "Corporate Corner - Resin Trophies & Medals",
+                "Corporate Corner - Artistic Resin Furniture & Corporate Spaces"
+            ],
+            default=[]  # No default selections
+        )
+        message = st.text_area("Message/Requirements")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        # Place the submit button outside the card
+        # Submit button outside the card
         submit_button = st.form_submit_button("Submit Enquiry")
 
         if submit_button:
@@ -423,14 +422,13 @@ with tab2:
 
     if not st.session_state.logged_in:
         with st.form("login_form"):
-            # Apply card styling to login form fields (excluding submit button)
-            with st.container():
-                st.markdown('<div class="form-card">', unsafe_allow_html=True)
-                username = st.text_input("Username")
-                password = st.text_input("Password", type="password")
-                st.markdown('</div>', unsafe_allow_html=True)
+            # Wrap the form fields in a card
+            st.markdown('<div class="form-card">', unsafe_allow_html=True)
+            username = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            st.markdown('</div>', unsafe_allow_html=True)
 
-            # Place the login button outside the card
+            # Login button outside the card
             login_button = st.form_submit_button("Login")
             
             if login_button:
