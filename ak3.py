@@ -52,13 +52,14 @@ st.markdown("""
         padding: 20px;
     }
 
-    /* Buttons */
+    /* Buttons (Submit and Login buttons) */
     .stButton>button {
-        background-color: #ff6200 !important; /* Orange background for submit button */
-        color: #FFFFFF !important; /* White text for submit button */
-        border: none;
-        border-radius: 5px;
-        padding: 10px 20px;
+        background-color: #ff6200 !important; /* Orange background for all buttons */
+        color: #FFFFFF !important; /* White text for all buttons */
+        border: none !important;
+        border-radius: 5px !important;
+        padding: 10px 20px !important;
+        width: 100% !important; /* Ensure button is fully visible */
     }
     .stButton>button:hover {
         background-color: #e55a00 !important; /* Slightly darker orange on hover */
@@ -105,6 +106,11 @@ st.markdown("""
     .stDataFrame {
         border: 1px solid #d8d2ea;
         background-color: #FFFFFF;
+    }
+
+    /* Error text styling */
+    [data-testid="stAlert"] div[role="alert"] {
+        color: #8B0000 !important; /* Dark red for error text */
     }
 
     /* Hide the Streamlit toolbar and header */
