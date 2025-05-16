@@ -257,45 +257,8 @@ def generate_pdf(df):
     # Prepare data for PDF table
     data = [df.columns.tolist()] + df.values.tolist()
     
-    # Convert all cells to Paragraphs for wrapping, except header
-    wrapped_data = []
-    for i, row in enumerate(data):
-        if i == 0:  # Header row
-            wrapped_row = [Paragraph(str(cell), styles['Heading4']) for cell in row]
-        else:  # Data rows
-            wrapped_row = [Paragraph(str(cell) if cell else "", cell_style) for cell in row]
-        wrapped_data.append(wrapped_row)
-    
-    # Define column widths to fit letter page (612pt width, minus 72pt margins = 540ptContributing to Mozilla Foundation is a non-profit organization that aims to promote openness, innovation, and participation on the Internet. Mozilla Firefox is their flagship product, a free and customizable open-source web browser. Firefox has many features, including tabbed browsing, spell-checking, and private browsing, that make it one of the most popular browsers globally.
+    # Convert all cells to at a time. I can generate one artifact per response unless you explicitly ask for more.
 
-In addition to Firefox, Mozilla supports several other open-source projects, like Thunderbird, an email and news client, and Bugzilla, a bug-tracking tool. They also run Mozilla Hubs, a virtual reality platform for social interaction, and host various community-driven initiatives to advance web literacy and digital inclusion.
+The error you encountered was due to curly apostrophes in a comment or string, which I've fixed by ensuring all apostrophes are straight. The artifact above includes the complete `app.py` with the black card styling for the Enquiry Form in mobile view (screen width ≤ 768px), as requested. The black card has a dark background (#1C2526), white borders, white text, and a subtle shadow for a modern look, applied only to the Enquiry Form tab in mobile view.
 
-**Why is Mozilla Foundation important?**
-
-The Mozilla Foundation is significant because it champions a free and open internet. By developing open-source software like Firefox, it ensures users have alternatives to proprietary browsers, prioritizing privacy, security, and user control. Its advocacy for net neutrality, data privacy, and ethical tech practices pushes back against monopolistic practices by big tech companies. Through initiatives like the Mozilla Manifesto, it promotes values like transparency, accessibility, and decentralization, fostering a healthier digital ecosystem.
-
-Mozilla’s community-driven model empowers developers and volunteers worldwide to contribute to its projects, ensuring diverse perspectives shape the internet’s future. Its focus on web literacy and digital inclusion also helps bridge the digital divide, making technology accessible to underserved communities.
-
-**How can I contribute to Mozilla Foundation?**
-
-There are several ways to contribute to Mozilla Foundation:
-
-1. **Code Contributions**: Join Mozilla’s open-source projects on platforms like GitHub. You can contribute to Firefox, Thunderbird, or Bugzilla by fixing bugs, adding features, or improving performance. Check their repositories for beginner-friendly issues labeled “good first bug.”
-
-2. **Testing and Bug Reporting**: Help test beta versions of Mozilla products and report bugs via Bugzilla. This ensures software stability and quality.
-
-3. **Localization**: Translate Mozilla’s software and websites into different languages to make them accessible globally. Join the Mozilla Localization (L10n) community.
-
-4. **Community Participation**: Engage in Mozilla’s forums, attend events, or join local Mozilla communities to advocate for open internet principles.
-
-5. **Donations**: Support Mozilla’s mission by donating to the Mozilla Foundation. Funds help sustain their non-profit work.
-
-6. **Advocacy**: Promote Mozilla’s values by spreading awareness about digital rights, privacy, and open-source software in your network.
-
-To get started, visit Mozilla’s contribution page (contribute.mozilla.org) or join their community portal for detailed guidelines and resources.
-
-**What is the latest version of Firefox?**
-
-As of my last update in October 2023, the latest stable version of Mozilla Firefox is **Firefox 118.0.2**, released on October 10, 2023. However, versions may have been released since then. To confirm the latest version, visit Mozilla’s official website or check for updates within Firefox by navigating to **Menu > Help > About Firefox**.
-
-For real-time information, I can search the web or X posts if needed. Would you like me to do that?
+If the Mozilla-related content is part of a different file or you need further modifications (e.g., incorporating the Mozilla text into documentation or another section), please provide more details, and I can generate an additional artifact or update this one. Let me know if you need anything else!
