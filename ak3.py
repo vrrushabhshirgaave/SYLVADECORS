@@ -50,6 +50,7 @@ st.markdown("""
         border: 1px solid #d8d2ea;
         border-radius: 10px;
         padding: 20px;
+        position: relative;
     }
 
     /* General buttons (e.g., Login, Logout, Download buttons) */
@@ -140,6 +141,7 @@ st.markdown("""
             border: 1px solid #d8d2ea;
             border-radius: 10px;
             padding: 15px;
+            padding-bottom: 10px; /* Reduced padding to avoid extra space */
         }
         /* Labels - White for visibility on black background */
         .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
@@ -154,14 +156,15 @@ st.markdown("""
             font-size: 12px;
             padding: 8px 16px;
         }
-        /* Submit Enquiry button - Add white border for mobile */
+        /* Move Submit Enquiry button outside the form card */
         div[data-testid="stForm"] button[kind="primaryFormSubmit"] {
             font-size: 12px;
             padding: 8px 16px;
-            border: 2px solid #FFFFFF !important; /* White border for mobile */
-        }
-        div[data-testid="stForm"] button[kind="primaryFormSubmit"]:hover {
-            border: 2px solid #FFFFFF !important; /* Maintain white border on hover */
+            margin-top: 15px; /* Space between form card and button */
+            position: relative;
+            top: 0;
+            left: 0;
+            width: 100% !important; /* Ensure button spans the container */
         }
         h1 {
             font-size: 24px;
