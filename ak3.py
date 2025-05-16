@@ -58,25 +58,51 @@ st.markdown("""
             color: #FFFFFF;
         }
     }
+    /* Submit Enquiry and Login buttons (dark green) */
     .stForm [data-testid="stFormSubmitButton"]>button {
-        background-color: #2ECC71;
+        background-color: #006400;
         color: #FFFFFF;
         border: none;
         border-radius: 5px;
         padding: 10px 20px;
     }
     .stForm [data-testid="stFormSubmitButton"]>button:hover {
-        background-color: #27AE60;
+        background-color: #004d00;
         color: #FFFFFF;
     }
-    .stButton>button:not([data-testid="stFormSubmitButton"]>button) {
+    /* Download Excel button (dark green) */
+    .stButton>button[aria-label="Download as Excel"] {
+        background-color: #006400;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+    }
+    .stButton>button[aria-label="Download as Excel"]:hover {
+        background-color: #004d00;
+        color: #FFFFFF;
+    }
+    /* Download PDF button (dark red) */
+    .stButton>button[aria-label="Download as PDF"] {
+        background-color: #8B0000;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+    }
+    .stButton>button[aria-label="Download as PDF"]:hover {
+        background-color: #6B0000;
+        color: #FFFFFF;
+    }
+    /* Other buttons (e.g., Logout) */
+    .stButton>button:not([data-testid="stFormSubmitButton"]>button):not([aria-label="Download as Excel"]):not([aria-label="Download as PDF"]) {
         background-color: #333333;
         color: #FFFFFF;
         border: none;
         border-radius: 5px;
         padding: 10px 20px;
     }
-    .stButton>button:not([data-testid="stFormSubmitButton"]>button):hover {
+    .stButton>button:not([data-testid="stFormSubmitButton"]>button):not([aria-label="Download as Excel"]):not([aria-label="Download as PDF"]):hover {
         background-color: #555555;
         color: #FFFFFF;
     }
@@ -273,6 +299,8 @@ add_default_owner()
 # Initialize session state
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
+if 'session_initialized' not in st.session_state:
+    st.session_state.session_initialized = True
 
 # Tabs for Enquiry Form and Owner Login
 tab1, tab2 = st.tabs(["Enquiry Form", "Owner Login"])
