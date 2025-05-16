@@ -181,7 +181,7 @@ def save_enquiry(name, email, phone, furniture_types, message):
         conn.commit()
 
 # Cache enquiries data
-@st.cache_data(ttl=300)  # Cache for 5 minutes
+@st.cache_data(ttl=300)
 def get_enquiries():
     engine = get_db_connection()
     return pd.read_sql_query("SELECT * FROM enquiries", engine)
@@ -194,23 +194,36 @@ def generate_excel(_df):
     sheet = workbook.active
     sheet.title = "Enquiries"
     
+    # Add title
     sheet['A1'] = "Sylva Decors Inquiry List"
     sheet.merge_cells('A1:G1')
     title_cell = sheet['A1']
     title_cell.font = openpyxl.styles.Font(bold=True, size=14)
     title_cell.alignment = openpyxl.styles.Alignment(horizontal='center')
     
-    for r_idx, row in enumerate(pd.DataFrame([_df.columns]).values, 2):
-        for c_idx, value in enumerate(row, 1):
-            sheet.cell(row=r_idx, column=c_idx).value = value
-            sheet.cell(row=r_idx, column=c_idx).font = openpyxl.styles.Font(bold=True)
+    # Add headers
+    for c_idx, value in enumerate(_df.columns, 1):
+        sheet.cell(row=2, column=c_idx).value = value
+        sheet.cell(row=2, column=c_idx).font = openpyxl.styles.Font(bold=True)
+    
+    # Add data
     for r_idx, row in enumerate(_df.values, 3):
         for c_idx, value in enumerate(row, 1):
-            sheet.cell(row=r_idx + 1, column=c_idx).value = value
+            sheet.cell(row=r_idx, column=c_idx).value = value
     
+    # Auto-adjust column widths
     for col_idx in range(1, 8):
         column_letter = openpyxl.utils.get_column_letter(col_idx)
-        max_length = max((len(str(cell.value or "")) for cell in sheet[f"{column_letter}2:{column_letter}{sheet.max_row}"]), default=10)
+        max_length = 0
+        # Iterate over rows explicitly to avoid range issues
+        for row_idx in range(2, sheet.max_row + 1):
+            cell = sheet[f"{column_letter}{row_idx}"]
+            try:
+                if not isinstance(cell, openpyxl.cell.cell.MergedCell):
+                    value = str(cell.value) if cell.value is not None else ""
+                    max_length = max(max_length, len(value))
+            except:
+                pass
         sheet.column_dimensions[column_letter].width = min(max_length + 2, 50)
     
     workbook.save(output)
@@ -246,7 +259,7 @@ def generate_pdf(_df):
         ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
         ('TOPPADDING', (0, 0), (-1, -1), 4),
         ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
-        ('-background', (0, 1), (-1, -1), colors.white),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d8d2ea')),
         ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#d8d2ea')),
     ]))
@@ -306,7 +319,7 @@ with tab1:
                 save_enquiry(name, email, phone, furniture_types, message)
                 st.success("Enquiry submitted successfully!")
             else:
-                st.error("Please fill all required fields (Name, Email PORTRAIT, Phone, Furniture Types).")
+                st.error("Please fill all required fields (Name, Email, Phone, Furniture Types).")
 
 # Owner Login and Dashboard
 with tab2:
