@@ -65,16 +65,16 @@ st.markdown("""
             color: #FFFFFF;
         }
     }
-    /* Submit Enquiry button (green with white border and text) */
+    /* Submit Enquiry button (emerald with no border and white text) */
     .stForm [data-testid="stFormSubmitButton"]>button {
-        background-color: #00FF00;
+        background-color: #2ECC71;
         color: #FFFFFF;
-        border: 2px solid #FFFFFF;
+        border: none;
         border-radius: 5px;
         padding: 10px 20px;
     }
     .stForm [data-testid="stFormSubmitButton"]>button:hover {
-        background-color: #00CC00;
+        background-color: #27AE60;
         color: #FFFFFF;
     }
     /* Other buttons (maintain original styling) */
@@ -358,8 +358,7 @@ with tab2:
             
             if login_button:
                 if verify_login(username, password):
-                    st.session_state.logged_in = True
-                    st.success("Logged in successfully!")
+                    st.session_state.logged_in =  st.success("Logged in successfully!")
                     st.rerun()
                 else:
                     st.error("Invalid username or password")
