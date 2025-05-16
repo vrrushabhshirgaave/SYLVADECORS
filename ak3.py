@@ -32,6 +32,7 @@ st.markdown("""
     .stTabs [data-baseweb="tab"] {
         background-color: #FFFFFF;
         color: #333333;
+        font-size: 3vw; /* Responsive font size */
     }
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
         background-color: #FFFFFF;
@@ -43,7 +44,9 @@ st.markdown("""
         background-color: #FFFFFF;
         border: 1px solid #d8d2ea;
         border-radius: 10px;
-        padding: 20px;
+        padding: 15px; /* Reduced padding for mobile */
+        margin: 10px; /* Added margin for spacing */
+        box-sizing: border-box;
     }
     /* Buttons */
     .stButton>button {
@@ -51,7 +54,9 @@ st.markdown("""
         color: #FFFFFF;
         border: none;
         border-radius: 5px;
-        padding: 10px 20px;
+        padding: 8px 16px;
+        font-size: 2.5vw; /* Responsive font size */
+        width: 100%; /* Full width for mobile */
     }
     .stButton>button:hover {
         background-color: #555555;
@@ -61,21 +66,33 @@ st.markdown("""
     h1 {
         font-family: 'Stardos Stencil', sans-serif;
         color: #333333;
+        font-size: 5vw; /* Responsive font size */
     }
     h2, h3 {
         font-family: 'Stardos Stencil', sans-serif;
         color: #d8d2ea;
+        font-size: 4vw; /* Responsive font size */
     }
     /* Text inputs and select boxes */
+    .stTextInput, .stSelectbox, .stMultiSelect {
+        width: 100% !important; /* Full width for mobile */
+        margin-bottom: 10px; /* Spacing between inputs */
+    }
     .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div {
         background-color: #FFFFFF;
         border: 1px solid #d8d2ea;
         color: #333333;
+        border-radius: 5px;
+        padding: 8px;
+        font-size: 2.5vw; /* Responsive font size */
+        width: 100%; /* Ensure full width */
+        box-sizing: border-box;
     }
     /* Dataframe */
     .stDataFrame {
         border: 1px solid #d8d2ea;
         background-color: #FFFFFF;
+        width: 100%;
     }
     /* Hide the Streamlit toolbar (including Deploy button) */
     [data-testid="stToolbar"] {
@@ -84,6 +101,30 @@ st.markdown("""
     /* Hide the entire header */
     header[data-testid="stHeader"] {
         display: none;
+    }
+    /* Media query for mobile devices */
+    @media (max-width: 600px) {
+        .stForm {
+            padding: 10px;
+            margin: 5px;
+        }
+        .stButton>button {
+            padding: 6px 12px;
+            font-size: 3.5vw;
+        }
+        .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div {
+            font-size: 3.5vw;
+            padding: 6px;
+        }
+        h1 {
+            font-size: 6vw;
+        }
+        h2, h3 {
+            font-size: 5vw;
+        }
+        .stTabs [data-baseweb="tab"] {
+            font-size: 4vw;
+        }
     }
     </style>
 """, unsafe_allow_html=True)
