@@ -66,17 +66,16 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* Specific styling for the Submit Enquiry button (outside the form) */
-    button#submit-enquiry {
+    /* Specific styling for the Submit Enquiry button */
+    div[data-testid="stForm"] button[kind="primaryFormSubmit"] {
         background-color: #28a745 !important; /* Green background for Submit Enquiry */
         color: #FFFFFF !important; /* White text for Submit Enquiry */
         border: none !important;
         border-radius: 5px !important;
         padding: 10px 20px !important;
         width: 100% !important; /* Ensure button is fully visible */
-        margin-top: 10px !important;
     }
-    button#submit-enquiry:hover {
+    div[data-testid="stForm"] button[kind="primaryFormSubmit"]:hover {
         background-color: #218838 !important; /* Slightly darker green on hover */
         color: #FFFFFF !important;
     }
@@ -133,10 +132,23 @@ st.markdown("""
         display: none;
     }
 
+    /* Custom class for form card (excluding submit button) */
+    .form-card {
+        background-color: #FFFFFF; /* Default white for desktop */
+        border: 1px solid #d8d2ea;
+        border-radius: 10px;
+        padding: 20px;
+    }
+
     /* Mobile-specific adjustments */
     @media (max-width: 600px) {
         /* Form card - Black background for mobile */
         .stForm {
+            background-color: transparent !important; /* Transparent to avoid overlap */
+            border: none !important;
+            padding: 0 !important;
+        }
+        .form-card {
             background-color: #000000 !important; /* Black background for mobile */
             border: 1px solid #d8d2ea;
             border-radius: 10px;
@@ -155,7 +167,7 @@ st.markdown("""
             font-size: 12px;
             padding: 8px 16px;
         }
-        button#submit-enquiry {
+        div[data-testid="stForm"] button[kind="primaryFormSubmit"] {
             font-size: 12px;
             padding: 8px 16px;
         }
@@ -354,85 +366,59 @@ with tab1:
     st.title("Sylva Decors Enquiry Form")
     st.write("Interested in our resin-based furniture? Fill out the form below!")
 
-    # Use session state to store form values since we're not using st.form_submit_button
-    if 'enquiry_form_data' not in st.session_state:
-        st.session_state.enquiry_form_data = {
-            'name': '',
-            'email': '',
-            'phone': '',
-            'furniture_types': [],
-            'message': ''
-        }
+    with st.form("enquiry_form"):
+        # Wrap the form fields (excluding the submit button) in a container with the card style
+        with st.container():
+            st.markdown('<div class="form-card">', unsafe_allow_html=True)
+            name = st.text_input("Full Name")
+            email = st.text_input("Email Address")
+            phone = st.text_input("Phone Number")
+            furniture_types = st.multiselect(
+                "Furniture Types",
+                [
+                    "Resin Furniture- Coffee Table",
+                    "Resin Furniture-Center Table",
+                    "Resin Furniture- Wall Panels",
+                    "Resin Furniture- Dining Table",
+                    "Resin Furniture- Conference Table",
+                    "Wall Decors - Geocode Wall Art",
+                    "Wall Decors-Ocean Inspired Wall Panels",
+                    "Wall Decors - Resin Wall Clock",
+                    "Functional Decors - Theme Based Coaster Set",
+                    "Functional Decors - Wood Resin Trays",
+                    "Functional Decors - Customized Name Plates",
+                    "Preservation Arts - Wedding Varmala's & Florals",
+                    "Preservation Art - Umbilical Cords",
+                    "Preservation Art - Pet Keepsakes",
+                    "Corporate Corner - Corporate Gifting",
+                    "Corporate Corner - Resin Trophies & Medals",
+                    "Corporate Corner - Artistic Resin Furniture & Corporate Spaces"
+                ],
+                default=[]  # No default selections
+            )
+            message = st.text_area("Message/Requirements")
+            st.markdown('</div>', unsafe_allow_html=True)
 
-    # Form card
-    with st.container():
-        st.markdown('<div class="stForm">', unsafe_allow_html=True)
-        name = st.text_input("Full Name", value=st.session_state.enquiry_form_data['name'], key="enquiry_name")
-        email = st.text_input("Email Address", value=st.session_state.enquiry_form_data['email'], key="enquiry_email")
-        phone = st.text_input("Phone Number", value=st.session_state.enquiry_form_data['phone'], key="enquiry_phone")
-        furniture_types = st.multiselect(
-            "Furniture Types",
-            [
-                "Resin Furniture- Coffee Table",
-                "Resin Furniture-Center Table",
-                "Resin Furniture- Wall Panels",
-                "Resin Furniture- Dining Table",
-                "Resin Furniture- Conference Table",
-                "Wall Decors - Geocode Wall Art",
-                "Wall Decors-Ocean Inspired Wall Panels",
-                "Wall Decors - Resin Wall Clock",
-                "Functional Decors - Theme Based Coaster Set",
-                "Functional Decors - Wood Resin Trays",
-                "Functional Decors - Customized Name Plates",
-                "Preservation Arts - Wedding Varmala's & Florals",
-                "Preservation Art - Umbilical Cords",
-                "Preservation Art - Pet Keepsakes",
-                "Corporate Corner - Corporate Gifting",
-                "Corporate Corner - Resin Trophies & Medals",
-                "Corporate Corner - Artistic Resin Furniture & Corporate Spaces"
-            ],
-            default=st.session_state.enquiry_form_data['furniture_types'],
-            key="enquiry_furniture_types"
-        )
-        message = st.text_area("Message/Requirements", value=st.session_state.enquiry_form_data['message'], key="enquiry_message")
-        st.markdown('</div>', unsafe_allow_html=True)
+        # Place the submit button outside the card
+        submit_button = st.form_submit_button("Submit Enquiry")
 
-    # Submit button outside the form card
-    if st.button("Submit Enquiry", key="submit_enquiry"):
-        # Update session state with form values
-        st.session_state.enquiry_form_data = {
-            'name': name,
-            'email': email,
-            'phone': phone,
-            'furniture_types': furniture_types,
-            'message': message
-        }
+        if submit_button:
+            # Check if all required fields are filled
+            missing_fields = []
+            if not name:
+                missing_fields.append("Full Name")
+            if not email:
+                missing_fields.append("Email Address")
+            if not phone:
+                missing_fields.append("Phone Number")
+            if not furniture_types:
+                missing_fields.append("Furniture Types")
 
-        # Validation
-        missing_fields = []
-        if not name:
-            missing_fields.append("Full Name")
-        if not email:
-            missing_fields.append("Email Address")
-        if not phone:
-            missing_fields.append("Phone Number")
-        if not furniture_types:
-            missing_fields.append("Furniture Types")
-
-        if missing_fields:
-            st.error("All fields are required.")
-        else:
-            save_enquiry(name, email, phone, furniture_types, message)
-            st.success("Enquiry submitted successfully!")
-            # Reset form
-            st.session_state.enquiry_form_data = {
-                'name': '',
-                'email': '',
-                'phone': '',
-                'furniture_types': [],
-                'message': ''
-            }
-            st.rerun()
+            if missing_fields:
+                st.error("All fields are required.")
+            else:
+                save_enquiry(name, email, phone, furniture_types, message)
+                st.success("Enquiry submitted successfully!")
 
 # Owner Login and Dashboard
 with tab2:
@@ -444,8 +430,14 @@ with tab2:
 
     if not st.session_state.logged_in:
         with st.form("login_form"):
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
+            # Apply card styling to login form fields (excluding submit button)
+            with st.container():
+                st.markdown('<div class="form-card">', unsafe_allow_html=True)
+                username = st.text_input("Username")
+                password = st.text_input("Password", type="password")
+                st.markdown('</div>', unsafe_allow_html=True)
+
+            # Place the login button outside the card
             login_button = st.form_submit_button("Login")
             
             if login_button:
