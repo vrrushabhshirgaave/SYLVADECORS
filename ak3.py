@@ -44,12 +44,11 @@ st.markdown("""
         border-bottom: 2px solid #333333;
     }
 
-    /* Form container - Default to white for desktop */
+    /* Form container - Default to transparent to avoid overlap */
     .stForm {
-        background-color: #FFFFFF !important; /* White background for desktop */
-        border: 1px solid #d8d2ea;
-        border-radius: 10px;
-        padding: 20px;
+        background-color: transparent !important;
+        border: none !important;
+        padding: 0 !important;
     }
 
     /* General buttons (e.g., Login, Logout, Download buttons) */
@@ -142,12 +141,6 @@ st.markdown("""
 
     /* Mobile-specific adjustments */
     @media (max-width: 600px) {
-        /* Form card - Black background for mobile */
-        .stForm {
-            background-color: transparent !important; /* Transparent to avoid overlap */
-            border: none !important;
-            padding: 0 !important;
-        }
         .form-card {
             background-color: #000000 !important; /* Black background for mobile */
             border: 1px solid #d8d2ea;
