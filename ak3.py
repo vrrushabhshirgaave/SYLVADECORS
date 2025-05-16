@@ -18,7 +18,7 @@ load_dotenv()
 # Streamlit app configuration (MUST be the first Streamlit command)
 st.set_page_config(page_title="Sylva Decors Enquiry System", page_icon="🪵", layout="wide")
 
-# Custom CSS for styling with updated mobile view requirements
+# Custom CSS for styling to match the screenshot
 st.markdown("""
     <style>
     /* Import Stardos Stencil font from Google Fonts */
@@ -27,21 +27,21 @@ st.markdown("""
     /* Main app background */
     .stApp {
         background-color: #d8d2ea;
-        color: #333333;
+        color: #000000;
     }
 
     /* Tabs styling */
     .stTabs [data-baseweb="tab"] {
         background-color: #FFFFFF;
-        color: #333333;
+        color: #000000;
         font-family: 'Stardos Stencil', sans-serif;
         font-size: 16px;
         padding: 10px 20px;
     }
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
         background-color: #FFFFFF;
-        color: #333333;
-        border-bottom: 2px solid #333333;
+        color: #000000;
+        border-bottom: 2px solid #FF0000;
     }
 
     /* Form container */
@@ -68,26 +68,26 @@ st.markdown("""
     /* Headers */
     h1 {
         font-family: 'Stardos Stencil', sans-serif;
-        color: #333333;
+        color: #000000;
     }
     h2, h3 {
         font-family: 'Stardos Stencil', sans-serif;
-        color: #333333;
+        color: #000000;
     }
 
     /* Text inputs, select boxes, and text areas */
     .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
-        color: #333333 !important;
+        color: #000000 !important;
         font-family: 'Stardos Stencil', sans-serif;
         font-size: 14px;
-        font-weight: bold;
+        font-weight: normal;
     }
     .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
         background-color: #FFFFFF !important;
-        border: 1px solid #d8d2ea !important;
-        color: #333333 !important;
+        border: 1px solid #000000 !important;
+        color: #000000 !important;
         border-radius: 5px;
-        padding: 8px;
+        padding: 10px;
         font-size: 14px;
     }
     /* Placeholder text */
@@ -96,9 +96,20 @@ st.markdown("""
         opacity: 1;
     }
 
-    /* Selectbox dropdown arrow */
-    .stSelectbox>div::after {
-        border-color: #333333 transparent transparent transparent !important;
+    /* Selectbox (multiselect) styling to match dropdown */
+    .stMultiSelect [data-baseweb="select"]>div {
+        background-color: #FFFFFF !important;
+        border: 1px solid #000000 !important;
+        border-radius: 5px;
+        padding: 10px;
+        font-size: 14px;
+        color: #888888 !important;
+    }
+    .stMultiSelect [data-baseweb="select"]>div>div {
+        color: #888888 !important;
+    }
+    .stMultiSelect [data-baseweb="select"]>div::after {
+        border-color: #000000 transparent transparent transparent !important;
     }
 
     /* Dataframe */
@@ -122,9 +133,16 @@ st.markdown("""
         }
         .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
             font-size: 12px;
-            padding: 6px;
+            padding: 8px;
             background-color: #FFFFFF !important;
-            color: #333333 !important;
+            color: #000000 !important;
+            border: 1px solid #000000 !important;
+        }
+        .stMultiSelect [data-baseweb="select"]>div {
+            font-size: 12px;
+            padding: 8px;
+            background-color: #FFFFFF !important;
+            color: #888888 !important;
         }
         .stButton>button {
             background-color: #FF0000 !important;
@@ -356,7 +374,8 @@ with tab1:
                 "Corporate Corner - Resin Trophies & Medals",
                 "Corporate Corner - Artistic Resin Furniture & Corporate Spaces"
             ],
-            default=[]  # No default selections
+            default=[],
+            placeholder="Choose an option"  # Matching the screenshot
         )
         message = st.text_area("Message/Requirements")
         submit_button = st.form_submit_button("Submit Enquiry")
