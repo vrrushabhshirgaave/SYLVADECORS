@@ -52,7 +52,7 @@ st.markdown("""
         padding: 20px;
     }
 
-    /* General buttons (e.g., Login, Download, Logout) */
+    /* General buttons (e.g., Login, Logout, Download buttons) */
     .stButton>button {
         background-color: #ff6200 !important; /* Orange background for other buttons */
         color: #FFFFFF !important; /* White text for other buttons */
@@ -67,11 +67,15 @@ st.markdown("""
     }
 
     /* Specific styling for the Submit Enquiry button */
-    div[data-testid="stForm"] button[kind="formSubmit"] {
+    div[data-testid="stForm"] button[kind="primaryFormSubmit"] {
         background-color: #28a745 !important; /* Green background for Submit Enquiry */
         color: #FFFFFF !important; /* White text for Submit Enquiry */
+        border: none !important;
+        border-radius: 5px !important;
+        padding: 10px 20px !important;
+        width: 100% !important; /* Ensure button is fully visible */
     }
-    div[data-testid="stForm"] button[kind="formSubmit"]:hover {
+    div[data-testid="stForm"] button[kind="primaryFormSubmit"]:hover {
         background-color: #218838 !important; /* Slightly darker green on hover */
         color: #FFFFFF !important;
     }
@@ -144,7 +148,7 @@ st.markdown("""
             font-size: 12px;
             padding: 8px 16px;
         }
-        div[data-testid="stForm"] button[kind="formSubmit"] {
+        div[data-testid="stForm"] button[kind="primaryFormSubmit"] {
             font-size: 12px;
             padding: 8px 16px;
         }
