@@ -18,7 +18,7 @@ load_dotenv()
 # Streamlit app configuration (MUST be the first Streamlit command)
 st.set_page_config(page_title="Sylva Decors Enquiry System", page_icon="🪵", layout="wide")
 
-# Custom CSS for styling with improved mobile view
+# Custom CSS for styling across mobile, tablet, and desktop
 st.markdown("""
     <style>
     /* Import Stardos Stencil font from Google Fonts */
@@ -37,11 +37,14 @@ st.markdown("""
         font-family: 'Stardos Stencil', sans-serif;
         font-size: 16px;
         padding: 10px 20px;
+        border: 1px solid #d8d2ea;
+        border-bottom: none;
+        border-radius: 5px 5px 0 0;
     }
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
         background-color: #FFFFFF;
         color: #333333;
-        border-bottom: 2px solid #333333;
+        border-bottom: 2px solid #FF6200;
     }
 
     /* Form container */
@@ -49,7 +52,9 @@ st.markdown("""
         background-color: #FFFFFF;
         border: 1px solid #d8d2ea;
         border-radius: 10px;
-        padding: 20px;
+        padding: 30px;
+        max-width: 800px;
+        margin: 0 auto;
     }
 
     /* Buttons */
@@ -59,6 +64,7 @@ st.markdown("""
         border: none;
         border-radius: 5px;
         padding: 10px 20px;
+        font-family: 'Stardos Stencil', sans-serif;
     }
     .stButton>button:hover {
         background-color: #e65a00 !important;
@@ -69,10 +75,16 @@ st.markdown("""
     h1 {
         font-family: 'Stardos Stencil', sans-serif;
         color: #333333;
+        text-align: center;
     }
     h2, h3 {
         font-family: 'Stardos Stencil', sans-serif;
         color: #333333;
+    }
+    p {
+        font-family: 'Stardos Stencil', sans-serif;
+        color: #333333;
+        text-align: center;
     }
 
     /* Text inputs, select boxes, and text areas */
@@ -105,6 +117,8 @@ st.markdown("""
     .stDataFrame {
         border: 1px solid #d8d2ea;
         background-color: #FFFFFF;
+        max-width: 100%;
+        margin: 0 auto;
     }
 
     /* Hide the Streamlit toolbar and header */
@@ -112,10 +126,64 @@ st.markdown("""
         display: none;
     }
 
-    /* Mobile-specific adjustments */
+    /* Desktop view (default) */
+    .stForm {
+        padding: 30px;
+    }
+    .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
+        font-size: 14px;
+    }
+    .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
+        font-size: 14px;
+        padding: 8px;
+    }
+    .stButton>button {
+        font-size: 14px;
+        padding: 10px 20px;
+    }
+    h1 {
+        font-size: 32px;
+    }
+    h2, h3 {
+        font-size: 24px;
+    }
+    p {
+        font-size: 16px;
+    }
+
+    /* Tablet view */
+    @media (max-width: 768px) {
+        .stForm {
+            padding: 20px;
+            max-width: 90%;
+        }
+        .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
+            font-size: 13px;
+        }
+        .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
+            font-size: 13px;
+            padding: 7px;
+        }
+        .stButton>button {
+            font-size: 13px;
+            padding: 8px 16px;
+        }
+        h1 {
+            font-size: 28px;
+        }
+        h2, h3 {
+            font-size: 20px;
+        }
+        p {
+            font-size: 14px;
+        }
+    }
+
+    /* Mobile view */
     @media (max-width: 600px) {
         .stForm {
             padding: 15px;
+            max-width: 100%;
         }
         .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
             font-size: 12px;
@@ -133,6 +201,13 @@ st.markdown("""
         }
         h2, h3 {
             font-size: 18px;
+        }
+        p {
+            font-size: 12px;
+        }
+        .stTabs [data-baseweb="tab"] {
+            font-size: 14px;
+            padding: 8px 16px;
         }
     }
     </style>
