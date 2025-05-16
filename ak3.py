@@ -18,7 +18,7 @@ load_dotenv()
 # Streamlit app configuration (MUST be the first Streamlit command)
 st.set_page_config(page_title="Sylva Decors Enquiry System", page_icon="🪵", layout="wide")
 
-# Custom CSS for styling with improved mobile view
+# Custom CSS for styling with updated mobile view requirements
 st.markdown("""
     <style>
     /* Import Stardos Stencil font from Google Fonts */
@@ -83,7 +83,7 @@ st.markdown("""
         font-weight: bold;
     }
     .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
-        background-color: #f5f5f5 !important;
+        background-color: #FFFFFF !important;
         border: 1px solid #d8d2ea !important;
         color: #333333 !important;
         border-radius: 5px;
@@ -123,10 +123,18 @@ st.markdown("""
         .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
             font-size: 12px;
             padding: 6px;
+            background-color: #FFFFFF !important;
+            color: #333333 !important;
         }
         .stButton>button {
+            background-color: #FF0000 !important;
+            color: #FFFFFF !important;
             font-size: 12px;
             padding: 8px 16px;
+        }
+        .stButton>button:hover {
+            background-color: #CC0000 !important;
+            color: #FFFFFF !important;
         }
         h1 {
             font-size: 24px;
