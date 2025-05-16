@@ -44,9 +44,9 @@ st.markdown("""
         border-bottom: 2px solid #333333;
     }
 
-    /* Form container */
+    /* Form container - Black background */
     .stForm {
-        background-color: #FFFFFF;
+        background-color: #000000 !important; /* Black background for the form card */
         border: 1px solid #d8d2ea;
         border-radius: 10px;
         padding: 20px;
@@ -92,7 +92,7 @@ st.markdown("""
 
     /* Text inputs, select boxes, and text areas */
     .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
-        color: #333333 !important;
+        color: #FFFFFF !important; /* White labels for visibility on black background */
         font-family: 'Stardos Stencil', sans-serif;
         font-size: 14px;
         font-weight: bold;
@@ -100,7 +100,7 @@ st.markdown("""
     .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
         background-color: #FFFFFF !important; /* White background for textboxes */
         border: 1px solid #d8d2ea !important;
-        color: #333333 !important; /* Dark text for readability */
+        color: #333333 !important; /* Dark text for readability on white background */
         border-radius: 5px;
         padding: 8px;
         font-size: 14px;
