@@ -11,7 +11,6 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-import re
 
 # Load environment variables
 load_dotenv()
@@ -19,7 +18,7 @@ load_dotenv()
 # Streamlit app configuration (MUST be the first Streamlit command)
 st.set_page_config(page_title="Sylva Decors Enquiry System", page_icon="🪵", layout="wide")
 
-# Custom CSS for styling with updated requirements
+# Custom CSS for styling with improved mobile view
 st.markdown("""
     <style>
     /* Import Stardos Stencil font from Google Fonts */
@@ -55,15 +54,15 @@ st.markdown("""
 
     /* Buttons */
     .stButton>button {
-        background-color: #333333;
-        color: #FFFFFF;
+        background-color: #FF6200 !important;
+        color: #FFFFFF !important;
         border: none;
         border-radius: 5px;
         padding: 10px 20px;
     }
     .stButton>button:hover {
-        background-color: #555555;
-        color: #FFFFFF;
+        background-color: #e65a00 !important;
+        color: #FFFFFF !important;
     }
 
     /* Headers */
@@ -128,12 +127,6 @@ st.markdown("""
         .stButton>button {
             font-size: 12px;
             padding: 8px 16px;
-            background-color: #FFA500 !important; /* Orange for mobile */
-            color: #FFFFFF !important; /* White text for mobile */
-        }
-        .stButton>button:hover {
-            background-color: #FF8C00 !important; /* Darker orange on hover */
-            color: #FFFFFF !important;
         }
         h1 {
             font-size: 24px;
@@ -318,36 +311,6 @@ def generate_pdf(df):
     doc.build(elements)
     return output.getvalue()
 
-# Validation functions
-def validate_name(name):
-    if not name:
-        return False, "Name is required."
-    if not re.match(r"^[A-Za-z\s]+$", name):
-        return False, "Name should contain only letters and spaces."
-    return True, ""
-
-def validate_email(email):
-    if not email:
-        return False, "Email is required."
-    email_pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
-    if not re.match(email_pattern, email):
-        return False, "Please enter a valid email address (e.g., example@domain.com)."
-    return True, ""
-
-def validate_phone(phone):
-    if not phone:
-        return False, "Phone number is required."
-    # Allow formats like +91 1234567890, 1234567890, or with spaces/dashes
-    phone_pattern = r"^\+?\d{1,3}[-.\s]?\d{10}$|^\d{10}$"
-    if not re.match(phone_pattern, phone.replace(" ", "")):
-        return False, "Please enter a valid phone number (e.g., +91 1234567890 or 1234567890)."
-    return True, ""
-
-def validate_furniture_types(furniture_types):
-    if not furniture_types:
-        return False, "Please select at least one furniture type."
-    return True, ""
-
 # Initialize database and default owner
 init_db()
 add_default_owner()
@@ -391,28 +354,11 @@ with tab1:
         submit_button = st.form_submit_button("Submit Enquiry")
 
         if submit_button:
-            # Validate all fields
-            name_valid, name_error = validate_name(name)
-            email_valid, email_error = validate_email(email)
-            phone_valid, phone_error = validate_phone(phone)
-            furniture_valid, furniture_error = validate_furniture_types(furniture_types)
-
-            # Display errors if any
-            if not name_valid:
-                st.error(name_error)
-            if not email_valid:
-                st.error(email_error)
-            if not phone_valid:
-                st.error(phone_error)
-            if not furniture_valid:
-                st.error(furniture_error)
-
-            # Submit if all validations pass
-            if name_valid and email_valid and phone_valid and furniture_valid:
+            if name and email and phone and furniture_types and message:
                 save_enquiry(name, email, phone, furniture_types, message)
                 st.success("Enquiry submitted successfully!")
             else:
-                st.error("Please correct the errors above before submitting.")
+                st.error("All fields are required.")
 
 # Owner Login and Dashboard
 with tab2:
