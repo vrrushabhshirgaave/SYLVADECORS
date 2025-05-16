@@ -317,23 +317,11 @@ with tab1:
         furniture_types = st.multiselect(
             "Furniture Types",
             [
-                "Resin Furniture- Coffee Table",
-                "Resin Furniture-Center Table",
-                "Resin Furniture- Wall Panels",
-                "Resin Furniture- Dining Table",
-                "Resin Furniture- Conference Table",
-                "Wall Decors - Geocode Wall Art",
-                "Wall Decors-Ocean Inspired Wall Panels",
-                "Wall Decors - Resin Wall Clock",
-                "Functional Decors - Theme Based Coaster Set",
-                "Functional Decors - Wood Resin Trays",
-                "Functional Decors - Customized Name Plates",
-                "Preservation Arts - Wedding Varmala's & Florals",
-                "Preservation Art - Umbilical Cords",
-                "Preservation Art - Pet Keepsakes",
-                "Corporate Corner - Corporate Gifting",
-                "Corporate Corner - Resin Trophies & Medals",
-                "Corporate Corner - Artistic Resin Furniture & Corporate Spaces"
+                "Resin Furniture",
+                "Wall Decors",
+                "Functional Decors",
+                "Preservation Arts",
+                "Corporate Corner"
             ],
             default=[]
         )
