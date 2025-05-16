@@ -18,7 +18,7 @@ load_dotenv()
 # Streamlit app configuration (MUST be the first Streamlit command)
 st.set_page_config(page_title="Sylva Decors Enquiry System", page_icon="🪵", layout="wide")
 
-# Custom CSS for styling with improved mobile view
+# Custom CSS for styling with responsive design
 st.markdown("""
     <style>
     /* Import Stardos Stencil font from Google Fonts */
@@ -44,9 +44,9 @@ st.markdown("""
         border-bottom: 2px solid #333333;
     }
 
-    /* Form container - Black background */
+    /* Form container - Default to white for desktop */
     .stForm {
-        background-color: #000000 !important; /* Black background for the form card */
+        background-color: #FFFFFF !important; /* White background for desktop */
         border: 1px solid #d8d2ea;
         border-radius: 10px;
         padding: 20px;
@@ -90,9 +90,9 @@ st.markdown("""
         color: #333333;
     }
 
-    /* Text inputs, select boxes, and text areas */
+    /* Text inputs, select boxes, and text areas - Default for desktop */
     .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
-        color: #FFFFFF !important; /* White labels for visibility on black background */
+        color: #333333 !important; /* Dark labels for white background (desktop) */
         font-family: 'Stardos Stencil', sans-serif;
         font-size: 14px;
         font-weight: bold;
@@ -134,10 +134,16 @@ st.markdown("""
 
     /* Mobile-specific adjustments */
     @media (max-width: 600px) {
+        /* Form card - Black background for mobile */
         .stForm {
+            background-color: #000000 !important; /* Black background for mobile */
+            border: 1px solid #d8d2ea;
+            border-radius: 10px;
             padding: 15px;
         }
+        /* Labels - White for visibility on black background */
         .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
+            color: #FFFFFF !important; /* White labels for black background */
             font-size: 12px;
         }
         .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
