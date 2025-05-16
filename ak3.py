@@ -11,6 +11,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+import re
 
 # Load environment variables
 load_dotenv()
@@ -18,7 +19,7 @@ load_dotenv()
 # Streamlit app configuration (MUST be the first Streamlit command)
 st.set_page_config(page_title="Sylva Decors Enquiry System", page_icon="🪵", layout="wide")
 
-# Custom CSS for styling to match the screenshot
+# Custom CSS for styling with updated requirements
 st.markdown("""
     <style>
     /* Import Stardos Stencil font from Google Fonts */
@@ -27,21 +28,21 @@ st.markdown("""
     /* Main app background */
     .stApp {
         background-color: #d8d2ea;
-        color: #000000;
+        color: #333333;
     }
 
     /* Tabs styling */
     .stTabs [data-baseweb="tab"] {
         background-color: #FFFFFF;
-        color: #000000;
+        color: #333333;
         font-family: 'Stardos Stencil', sans-serif;
         font-size: 16px;
         padding: 10px 20px;
     }
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
         background-color: #FFFFFF;
-        color: #000000;
-        border-bottom: 2px solid #FF0000;
+        color: #333333;
+        border-bottom: 2px solid #333333;
     }
 
     /* Form container */
@@ -68,26 +69,26 @@ st.markdown("""
     /* Headers */
     h1 {
         font-family: 'Stardos Stencil', sans-serif;
-        color: #000000;
+        color: #333333;
     }
     h2, h3 {
         font-family: 'Stardos Stencil', sans-serif;
-        color: #000000;
+        color: #333333;
     }
 
     /* Text inputs, select boxes, and text areas */
     .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
-        color: #000000 !important;
+        color: #333333 !important;
         font-family: 'Stardos Stencil', sans-serif;
         font-size: 14px;
-        font-weight: normal;
+        font-weight: bold;
     }
     .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
         background-color: #FFFFFF !important;
-        border: 1px solid #000000 !important;
-        color: #000000 !important;
+        border: 1px solid #d8d2ea !important;
+        color: #333333 !important;
         border-radius: 5px;
-        padding: 10px;
+        padding: 8px;
         font-size: 14px;
     }
     /* Placeholder text */
@@ -96,20 +97,9 @@ st.markdown("""
         opacity: 1;
     }
 
-    /* Selectbox (multiselect) styling to match dropdown */
-    .stMultiSelect [data-baseweb="select"]>div {
-        background-color: #FFFFFF !important;
-        border: 1px solid #000000 !important;
-        border-radius: 5px;
-        padding: 10px;
-        font-size: 14px;
-        color: #888888 !important;
-    }
-    .stMultiSelect [data-baseweb="select"]>div>div {
-        color: #888888 !important;
-    }
-    .stMultiSelect [data-baseweb="select"]>div::after {
-        border-color: #000000 transparent transparent transparent !important;
+    /* Selectbox dropdown arrow */
+    .stSelectbox>div::after {
+        border-color: #333333 transparent transparent transparent !important;
     }
 
     /* Dataframe */
@@ -133,25 +123,16 @@ st.markdown("""
         }
         .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
             font-size: 12px;
-            padding: 8px;
-            background-color: #FFFFFF !important;
-            color: #000000 !important;
-            border: 1px solid #000000 !important;
-        }
-        .stMultiSelect [data-baseweb="select"]>div {
-            font-size: 12px;
-            padding: 8px;
-            background-color: #FFFFFF !important;
-            color: #888888 !important;
+            padding: 6px;
         }
         .stButton>button {
-            background-color: #FF0000 !important;
-            color: #FFFFFF !important;
             font-size: 12px;
             padding: 8px 16px;
+            background-color: #FFA500 !important; /* Orange for mobile */
+            color: #FFFFFF !important; /* White text for mobile */
         }
         .stButton>button:hover {
-            background-color: #CC0000 !important;
+            background-color: #FF8C00 !important; /* Darker orange on hover */
             color: #FFFFFF !important;
         }
         h1 {
@@ -337,6 +318,36 @@ def generate_pdf(df):
     doc.build(elements)
     return output.getvalue()
 
+# Validation functions
+def validate_name(name):
+    if not name:
+        return False, "Name is required."
+    if not re.match(r"^[A-Za-z\s]+$", name):
+        return False, "Name should contain only letters and spaces."
+    return True, ""
+
+def validate_email(email):
+    if not email:
+        return False, "Email is required."
+    email_pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    if not re.match(email_pattern, email):
+        return False, "Please enter a valid email address (e.g., example@domain.com)."
+    return True, ""
+
+def validate_phone(phone):
+    if not phone:
+        return False, "Phone number is required."
+    # Allow formats like +91 1234567890, 1234567890, or with spaces/dashes
+    phone_pattern = r"^\+?\d{1,3}[-.\s]?\d{10}$|^\d{10}$"
+    if not re.match(phone_pattern, phone.replace(" ", "")):
+        return False, "Please enter a valid phone number (e.g., +91 1234567890 or 1234567890)."
+    return True, ""
+
+def validate_furniture_types(furniture_types):
+    if not furniture_types:
+        return False, "Please select at least one furniture type."
+    return True, ""
+
 # Initialize database and default owner
 init_db()
 add_default_owner()
@@ -374,18 +385,34 @@ with tab1:
                 "Corporate Corner - Resin Trophies & Medals",
                 "Corporate Corner - Artistic Resin Furniture & Corporate Spaces"
             ],
-            default=[],
-            placeholder="Choose an option"  # Matching the screenshot
+            default=[]  # No default selections
         )
         message = st.text_area("Message/Requirements")
         submit_button = st.form_submit_button("Submit Enquiry")
 
         if submit_button:
-            if name and email and phone and furniture_types:
+            # Validate all fields
+            name_valid, name_error = validate_name(name)
+            email_valid, email_error = validate_email(email)
+            phone_valid, phone_error = validate_phone(phone)
+            furniture_valid, furniture_error = validate_furniture_types(furniture_types)
+
+            # Display errors if any
+            if not name_valid:
+                st.error(name_error)
+            if not email_valid:
+                st.error(email_error)
+            if not phone_valid:
+                st.error(phone_error)
+            if not furniture_valid:
+                st.error(furniture_error)
+
+            # Submit if all validations pass
+            if name_valid and email_valid and phone_valid and furniture_valid:
                 save_enquiry(name, email, phone, furniture_types, message)
                 st.success("Enquiry submitted successfully!")
             else:
-                st.error("Please fill all required fields (Name, Email, Phone, Furniture Types).")
+                st.error("Please correct the errors above before submitting.")
 
 # Owner Login and Dashboard
 with tab2:
