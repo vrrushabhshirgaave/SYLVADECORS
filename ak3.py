@@ -44,7 +44,7 @@ st.markdown("""
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
         background-color: #FFFFFF;
         color: #333333;
-        border-bottom: 2px solid #FF6200;
+        border-bottom: 2px solid #333333;
     }
 
     /* Form container */
@@ -59,16 +59,16 @@ st.markdown("""
 
     /* Buttons */
     .stButton>button {
-        background-color: #FF6200 !important;
-        color: #FFFFFF !important;
-        border: none;
+        background-color: #E6E6E6 !important;
+        color: #333333 !important;
+        border: 1px solid #D3D3D3 !important;
         border-radius: 5px;
         padding: 10px 20px;
         font-family: 'Stardos Stencil', sans-serif;
     }
     .stButton>button:hover {
-        background-color: #e65a00 !important;
-        color: #FFFFFF !important;
+        background-color: #D3D3D3 !important;
+        color: #333333 !important;
     }
 
     /* Headers */
@@ -89,14 +89,14 @@ st.markdown("""
 
     /* Text inputs, select boxes, and text areas */
     .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
-        color: #333333 !important;
+        color: #666666 !important;
         font-family: 'Stardos Stencil', sans-serif;
         font-size: 14px;
         font-weight: bold;
     }
     .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
-        background-color: #FFFFFF !important;
-        border: 1px solid #d8d2ea !important;
+        background-color: #F7F9FB !important;
+        border: 1px solid #D3D3D3 !important;
         color: #333333 !important;
         border-radius: 5px;
         padding: 8px;
