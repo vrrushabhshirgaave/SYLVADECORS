@@ -50,7 +50,6 @@ st.markdown("""
         border: 1px solid #d8d2ea;
         border-radius: 10px;
         padding: 20px;
-        position: relative;
     }
 
     /* General buttons (e.g., Login, Logout, Download buttons) */
@@ -67,16 +66,17 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* Specific styling for the Submit Enquiry button */
-    div[data-testid="stForm"] button[kind="primaryFormSubmit"] {
+    /* Specific styling for the Submit Enquiry button (outside the form) */
+    button#submit-enquiry {
         background-color: #28a745 !important; /* Green background for Submit Enquiry */
         color: #FFFFFF !important; /* White text for Submit Enquiry */
         border: none !important;
         border-radius: 5px !important;
         padding: 10px 20px !important;
         width: 100% !important; /* Ensure button is fully visible */
+        margin-top: 10px !important;
     }
-    div[data-testid="stForm"] button[kind="primaryFormSubmit"]:hover {
+    button#submit-enquiry:hover {
         background-color: #218838 !important; /* Slightly darker green on hover */
         color: #FFFFFF !important;
     }
@@ -141,7 +141,6 @@ st.markdown("""
             border: 1px solid #d8d2ea;
             border-radius: 10px;
             padding: 15px;
-            padding-bottom: 10px; /* Reduced padding to avoid extra space */
         }
         /* Labels - White for visibility on black background */
         .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
@@ -156,15 +155,9 @@ st.markdown("""
             font-size: 12px;
             padding: 8px 16px;
         }
-        /* Move Submit Enquiry button outside the form card */
-        div[data-testid="stForm"] button[kind="primaryFormSubmit"] {
+        button#submit-enquiry {
             font-size: 12px;
             padding: 8px 16px;
-            margin-top: 15px; /* Space between form card and button */
-            position: relative;
-            top: 0;
-            left: 0;
-            width: 100% !important; /* Ensure button spans the container */
         }
         h1 {
             font-size: 24px;
@@ -361,10 +354,22 @@ with tab1:
     st.title("Sylva Decors Enquiry Form")
     st.write("Interested in our resin-based furniture? Fill out the form below!")
 
-    with st.form("enquiry_form"):
-        name = st.text_input("Full Name")
-        email = st.text_input("Email Address")
-        phone = st.text_input("Phone Number")
+    # Use session state to store form values since we're not using st.form_submit_button
+    if 'enquiry_form_data' not in st.session_state:
+        st.session_state.enquiry_form_data = {
+            'name': '',
+            'email': '',
+            'phone': '',
+            'furniture_types': [],
+            'message': ''
+        }
+
+    # Form card
+    with st.container():
+        st.markdown('<div class="stForm">', unsafe_allow_html=True)
+        name = st.text_input("Full Name", value=st.session_state.enquiry_form_data['name'], key="enquiry_name")
+        email = st.text_input("Email Address", value=st.session_state.enquiry_form_data['email'], key="enquiry_email")
+        phone = st.text_input("Phone Number", value=st.session_state.enquiry_form_data['phone'], key="enquiry_phone")
         furniture_types = st.multiselect(
             "Furniture Types",
             [
@@ -386,28 +391,48 @@ with tab1:
                 "Corporate Corner - Resin Trophies & Medals",
                 "Corporate Corner - Artistic Resin Furniture & Corporate Spaces"
             ],
-            default=[]  # No default selections
+            default=st.session_state.enquiry_form_data['furniture_types'],
+            key="enquiry_furniture_types"
         )
-        message = st.text_area("Message/Requirements")
-        submit_button = st.form_submit_button("Submit Enquiry")
+        message = st.text_area("Message/Requirements", value=st.session_state.enquiry_form_data['message'], key="enquiry_message")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        if submit_button:
-            # Check if all required fields are filled
-            missing_fields = []
-            if not name:
-                missing_fields.append("Full Name")
-            if not email:
-                missing_fields.append("Email Address")
-            if not phone:
-                missing_fields.append("Phone Number")
-            if not furniture_types:
-                missing_fields.append("Furniture Types")
+    # Submit button outside the form card
+    if st.button("Submit Enquiry", key="submit_enquiry"):
+        # Update session state with form values
+        st.session_state.enquiry_form_data = {
+            'name': name,
+            'email': email,
+            'phone': phone,
+            'furniture_types': furniture_types,
+            'message': message
+        }
 
-            if missing_fields:
-                st.error("All fields are required.")
-            else:
-                save_enquiry(name, email, phone, furniture_types, message)
-                st.success("Enquiry submitted successfully!")
+        # Validation
+        missing_fields = []
+        if not name:
+            missing_fields.append("Full Name")
+        if not email:
+            missing_fields.append("Email Address")
+        if not phone:
+            missing_fields.append("Phone Number")
+        if not furniture_types:
+            missing_fields.append("Furniture Types")
+
+        if missing_fields:
+            st.error("All fields are required.")
+        else:
+            save_enquiry(name, email, phone, furniture_types, message)
+            st.success("Enquiry submitted successfully!")
+            # Reset form
+            st.session_state.enquiry_form_data = {
+                'name': '',
+                'email': '',
+                'phone': '',
+                'furniture_types': [],
+                'message': ''
+            }
+            st.rerun()
 
 # Owner Login and Dashboard
 with tab2:
