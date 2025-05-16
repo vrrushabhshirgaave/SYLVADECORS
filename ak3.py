@@ -18,112 +18,121 @@ load_dotenv()
 # Streamlit app configuration (MUST be the first Streamlit command)
 st.set_page_config(page_title="Sylva Decors Enquiry System", page_icon="🪵", layout="wide")
 
-# Custom CSS for styling with #d8d2ea and white background, dark headers, and Stardos Stencil font
+# Custom CSS for styling with improved mobile view
 st.markdown("""
     <style>
     /* Import Stardos Stencil font from Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Stardos+Stencil:wght@400;700&display=swap');
+
     /* Main app background */
     .stApp {
         background-color: #d8d2ea;
         color: #333333;
     }
+
     /* Tabs styling */
     .stTabs [data-baseweb="tab"] {
         background-color: #FFFFFF;
         color: #333333;
-        font-size: 3vw; /* Responsive font size */
+        font-family: 'Stardos Stencil', sans-serif;
+        font-size: 16px;
+        padding: 10px 20px;
     }
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
         background-color: #FFFFFF;
         color: #333333;
         border-bottom: 2px solid #333333;
     }
+
     /* Form container */
     .stForm {
         background-color: #FFFFFF;
         border: 1px solid #d8d2ea;
         border-radius: 10px;
-        padding: 15px; /* Reduced padding for mobile */
-        margin: 10px; /* Added margin for spacing */
-        box-sizing: border-box;
+        padding: 20px;
     }
+
     /* Buttons */
     .stButton>button {
         background-color: #333333;
         color: #FFFFFF;
         border: none;
         border-radius: 5px;
-        padding: 8px 16px;
-        font-size: 2.5vw; /* Responsive font size */
-        width: 100%; /* Full width for mobile */
+        padding: 10px 20px;
     }
     .stButton>button:hover {
         background-color: #555555;
         color: #FFFFFF;
     }
+
     /* Headers */
     h1 {
         font-family: 'Stardos Stencil', sans-serif;
         color: #333333;
-        font-size: 5vw; /* Responsive font size */
     }
     h2, h3 {
         font-family: 'Stardos Stencil', sans-serif;
-        color: #d8d2ea;
-        font-size: 4vw; /* Responsive font size */
-    }
-    /* Text inputs and select boxes */
-    .stTextInput, .stSelectbox, .stMultiSelect {
-        width: 100% !important; /* Full width for mobile */
-        margin-bottom: 10px; /* Spacing between inputs */
-    }
-    .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div {
-        background-color: #FFFFFF;
-        border: 1px solid #d8d2ea;
         color: #333333;
+    }
+
+    /* Text inputs, select boxes, and text areas */
+    .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
+        color: #333333 !important;
+        font-family: 'Stardos Stencil', sans-serif;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
+        background-color: #f5f5f5 !important;
+        border: 1px solid #d8d2ea !important;
+        color: #333333 !important;
         border-radius: 5px;
         padding: 8px;
-        font-size: 2.5vw; /* Responsive font size */
-        width: 100%; /* Ensure full width */
-        box-sizing: border-box;
+        font-size: 14px;
     }
+    /* Placeholder text */
+    .stTextInput>div>input::placeholder, .stTextArea>div>textarea::placeholder {
+        color: #888888 !important;
+        opacity: 1;
+    }
+
+    /* Selectbox dropdown arrow */
+    .stSelectbox>div::after {
+        border-color: #333333 transparent transparent transparent !important;
+    }
+
     /* Dataframe */
     .stDataFrame {
         border: 1px solid #d8d2ea;
         background-color: #FFFFFF;
-        width: 100%;
     }
-    /* Hide the Streamlit toolbar (including Deploy button) */
-    [data-testid="stToolbar"] {
+
+    /* Hide the Streamlit toolbar and header */
+    [data-testid="stToolbar"], header[data-testid="stHeader"] {
         display: none;
     }
-    /* Hide the entire header */
-    header[data-testid="stHeader"] {
-        display: none;
-    }
-    /* Media query for mobile devices */
+
+    /* Mobile-specific adjustments */
     @media (max-width: 600px) {
         .stForm {
-            padding: 10px;
-            margin: 5px;
+            padding: 15px;
         }
-        .stButton>button {
-            padding: 6px 12px;
-            font-size: 3.5vw;
+        .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
+            font-size: 12px;
         }
-        .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div {
-            font-size: 3.5vw;
+        .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
+            font-size: 12px;
             padding: 6px;
         }
+        .stButton>button {
+            font-size: 12px;
+            padding: 8px 16px;
+        }
         h1 {
-            font-size: 6vw;
+            font-size: 24px;
         }
         h2, h3 {
-            font-size: 5vw;
-        }
-        .stTabs [data-baseweb="tab"] {
-            font-size: 4vw;
+            font-size: 18px;
         }
     }
     </style>
