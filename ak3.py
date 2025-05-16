@@ -154,16 +154,14 @@ st.markdown("""
             font-size: 12px;
             padding: 8px 16px;
         }
-        /* Reinforce Submit Enquiry button styling for mobile */
+        /* Submit Enquiry button - Add white border for mobile */
         div[data-testid="stForm"] button[kind="primaryFormSubmit"] {
-            background-color: #28a745 !important; /* Green background for Submit Enquiry */
-            color: #FFFFFF !important; /* White text for Submit Enquiry */
             font-size: 12px;
             padding: 8px 16px;
+            border: 2px solid #FFFFFF !important; /* White border for mobile */
         }
         div[data-testid="stForm"] button[kind="primaryFormSubmit"]:hover {
-            background-color: #218838 !important; /* Slightly darker green on hover */
-            color: #FFFFFF !important;
+            border: 2px solid #FFFFFF !important; /* Maintain white border on hover */
         }
         h1 {
             font-size: 24px;
