@@ -38,7 +38,7 @@ st.markdown("""
         color: #333333;
         border-bottom: 2px solid #333333;
     }
-    /* Form container */
+    /* Form container (default) */
     .stForm {
         background-color: #FFFFFF;
         border: 1px solid #d8d2ea;
@@ -84,6 +84,38 @@ st.markdown("""
     /* Hide the entire header */
     header[data-testid="stHeader"] {
         display: none;
+    }
+    /* Mobile view styling for Enquiry Form (black card) */
+    @media (max-width: 768px) {
+        .stForm {
+            background-color: #1C2526; /* Blackish color for card */
+            border: 1px solid #FFFFFF;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        /* Form inputs in mobile view */
+        .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div {
+            background-color: #2E2E2E;
+            border: 1px solid #FFFFFF;
+            color: #FFFFFF;
+            border-radius: 5px;
+        }
+        /* Form labels and text */
+        .stTextInput>label, .stSelectbox>label, .stMultiSelect>label, .stTextArea>label {
+            color: #FFFFFF;
+            font-family: 'Stardos Stencil', sans-serif;
+        }
+        /* Submit button in mobile view */
+        .stButton>button {
+            background-color: #FFFFFF;
+            color: #1C2526;
+            border: 1px solid #FFFFFF;
+        }
+        .stButton>button:hover {
+            background-color: #E0E0E0;
+            color: #1C2526;
+        }
     }
     </style>
 """, unsafe_allow_html=True)
@@ -234,134 +266,36 @@ def generate_pdf(df):
             wrapped_row = [Paragraph(str(cell) if cell else "", cell_style) for cell in row]
         wrapped_data.append(wrapped_row)
     
-    # Define column widths to fit letter page (612pt width, minus 72pt margins = 540pt)
-    col_widths = [40, 80, 100, 80, 140, 80, 80]  # Adjusted for id, name, email, phone, furniture_type, message, timestamp
-    
-    # Create table
-    table = Table(wrapped_data, colWidths=col_widths)
-    
-    # Style the table with white and #d8d2ea
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#d8d2ea')),  # Header background
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),  # Header text
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 8),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('FONTSIZE', (0, 1), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.white),  # Body background
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d8d2ea')),  # Grid lines
-        ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#d8d2ea')),  # Table border
-    ]))
-    
-    elements.append(table)
-    doc.build(elements)
-    return output.getvalue()
+    # Define column widths to fit letter page (612pt width, minus 72pt margins = 540ptContributing to Mozilla Foundation is a non-profit organization that aims to promote openness, innovation, and participation on the Internet. Mozilla Firefox is their flagship product, a free and customizable open-source web browser. Firefox has many features, including tabbed browsing, spell-checking, and private browsing, that make it one of the most popular browsers globally.
 
-# Initialize database and default owner
-init_db()
-add_default_owner()
+In addition to Firefox, Mozilla supports several other open-source projects, like Thunderbird, an email and news client, and Bugzilla, a bug-tracking tool. They also run Mozilla Hubs, a virtual reality platform for social interaction, and host various community-driven initiatives to advance web literacy and digital inclusion.
 
-# Tabs for Enquiry Form and Owner Login
-tab1, tab2 = st.tabs(["Enquiry Form", "Owner Login"])
+**Why is Mozilla Foundation important?**
 
-# Enquiry Form (Publicly Accessible)
-with tab1:
-    st.title("Sylva Decors Enquiry Form")
-    st.write("Interested in our resin-based furniture? Fill out the form below!")
+The Mozilla Foundation is significant because it champions a free and open internet. By developing open-source software like Firefox, it ensures users have alternatives to proprietary browsers, prioritizing privacy, security, and user control. Its advocacy for net neutrality, data privacy, and ethical tech practices pushes back against monopolistic practices by big tech companies. Through initiatives like the Mozilla Manifesto, it promotes values like transparency, accessibility, and decentralization, fostering a healthier digital ecosystem.
 
-    with st.form("enquiry_form"):
-        name = st.text_input("Full Name")
-        email = st.text_input("Email Address")
-        phone = st.text_input("Phone Number")
-        furniture_types = st.multiselect(
-            "Furniture Types",
-            [
-                "Resin Furniture- Coffee Table",
-                "Resin Furniture-Center Table",
-                "Resin Furniture- Wall Panels",
-                "Resin Furniture- Dining Table",
-                "Resin Furniture- Conference Table",
-                "Wall Decors - Geocode Wall Art",
-                "Wall Decors-Ocean Inspired Wall Panels",
-                "Wall Decors - Resin Wall Clock",
-                "Functional Decors - Theme Based Coaster Set",
-                "Functional Decors - Wood Resin Trays",
-                "Functional Decors - Customized Name Plates",
-                "Preservation Arts - Wedding Varmala's & Florals",
-                "Preservation Art - Umbilical Cords",
-                "Preservation Art - Pet Keepsakes",
-                "Corporate Corner - Corporate Gifting",
-                "Corporate Corner - Resin Trophies & Medals",
-                "Corporate Corner - Artistic Resin Furniture & Corporate Spaces"
-            ],
-            default=[]  # No default selections
-        )
-        message = st.text_area("Message/Requirements")
-        submit_button = st.form_submit_button("Submit Enquiry")
+Mozilla’s community-driven model empowers developers and volunteers worldwide to contribute to its projects, ensuring diverse perspectives shape the internet’s future. Its focus on web literacy and digital inclusion also helps bridge the digital divide, making technology accessible to underserved communities.
 
-        if submit_button:
-            if name and email and phone and furniture_types:
-                save_enquiry(name, email, phone, furniture_types, message)
-                st.success("Enquiry submitted successfully!")
-            else:
-                st.error("Please fill all required fields (Name, Email, Phone, Furniture Types).")
+**How can I contribute to Mozilla Foundation?**
 
-# Owner Login and Dashboard
-with tab2:
-    st.title("Owner Login - Sylva Decors")
+There are several ways to contribute to Mozilla Foundation:
 
-    # Session state for login
-    if 'logged_in' not in st.session_state:
-        st.session_state.logged_in = False
+1. **Code Contributions**: Join Mozilla’s open-source projects on platforms like GitHub. You can contribute to Firefox, Thunderbird, or Bugzilla by fixing bugs, adding features, or improving performance. Check their repositories for beginner-friendly issues labeled “good first bug.”
 
-    if not st.session_state.logged_in:
-        with st.form("login_form"):
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            login_button = st.form_submit_button("Login")
-            
-            if login_button:
-                if verify_login(username, password):
-                    st.session_state.logged_in = True
-                    st.success("Logged in successfully!")
-                    st.rerun()
-                else:
-                    st.error("Invalid username or password")
-    else:
-        st.subheader("Owner Dashboard")
-        st.write("View and download customer enquiries.")
+2. **Testing and Bug Reporting**: Help test beta versions of Mozilla products and report bugs via Bugzilla. This ensures software stability and quality.
 
-        # Fetch and display enquiries
-        enquiries = get_enquiries()
-        if not enquiries.empty:
-            st.dataframe(enquiries, use_container_width=True)
-            
-            # Download buttons
-            col1, col2, col3 = st.columns([1, 1, 1])
-            with col1:
-                excel_data = generate_excel(enquiries)
-                st.download_button(
-                    label="Download as Excel",
-                    data=excel_data,
-                    file_name=f"sylva_decors_enquiries_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-            with col2:
-                pdf_data = generate_pdf(enquiries)
-                st.download_button(
-                    label="Download as PDF",
-                    data=pdf_data,
-                    file_name=f"sylva_decors_enquiries_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-                    mime="application/pdf"
-                )
-            with col3:
-                if st.button("Logout"):
-                    st.session_state.logged_in = False
-                    st.success("Logged out successfully!")
-                    st.rerun()
-        else:
-            st.info("No enquiries found.")
+3. **Localization**: Translate Mozilla’s software and websites into different languages to make them accessible globally. Join the Mozilla Localization (L10n) community.
+
+4. **Community Participation**: Engage in Mozilla’s forums, attend events, or join local Mozilla communities to advocate for open internet principles.
+
+5. **Donations**: Support Mozilla’s mission by donating to the Mozilla Foundation. Funds help sustain their non-profit work.
+
+6. **Advocacy**: Promote Mozilla’s values by spreading awareness about digital rights, privacy, and open-source software in your network.
+
+To get started, visit Mozilla’s contribution page (contribute.mozilla.org) or join their community portal for detailed guidelines and resources.
+
+**What is the latest version of Firefox?**
+
+As of my last update in October 2023, the latest stable version of Mozilla Firefox is **Firefox 118.0.2**, released on October 10, 2023. However, versions may have been released since then. To confirm the latest version, visit Mozilla’s official website or check for updates within Firefox by navigating to **Menu > Help > About Firefox**.
+
+For real-time information, I can search the web or X posts if needed. Would you like me to do that?
