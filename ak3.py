@@ -18,67 +18,45 @@ load_dotenv()
 # Streamlit app configuration (MUST be the first Streamlit command)
 st.set_page_config(page_title="Sylva Decors Enquiry System", page_icon="🪵", layout="wide")
 
-# Custom CSS for styling with responsive design
+# Custom CSS for styling with #d8d2ea and white background, dark headers, and Stardos Stencil font
 st.markdown("""
     <style>
     /* Import Stardos Stencil font from Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Stardos+Stencil:wght@400;700&display=swap');
-
     /* Main app background */
     .stApp {
         background-color: #d8d2ea;
         color: #333333;
     }
-
     /* Tabs styling */
     .stTabs [data-baseweb="tab"] {
         background-color: #FFFFFF;
         color: #333333;
-        font-family: 'Stardos Stencil', sans-serif;
-        font-size: 16px;
-        padding: 10px 20px;
     }
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
         background-color: #FFFFFF;
         color: #333333;
         border-bottom: 2px solid #333333;
     }
-
-    /* Form container - Default to transparent to avoid overlap */
+    /* Form container */
     .stForm {
-        background-color: transparent !important;
-        border: none !important;
-        padding: 0 !important;
+        background-color: #FFFFFF;
+        border: 1px solid #d8d2ea;
+        border-radius: 10px;
+        padding: 20px;
     }
-
-    /* General buttons (e.g., Login, Logout, Download buttons) */
+    /* Buttons */
     .stButton>button {
-        background-color: #ff6200 !important; /* Orange background for other buttons */
-        color: #FFFFFF !important; /* White text for other buttons */
-        border: none !important;
-        border-radius: 5px !important;
-        padding: 10px 20px !important;
-        width: 100% !important; /* Ensure button is fully visible */
+        background-color: #333333;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
     }
     .stButton>button:hover {
-        background-color: #e55a00 !important; /* Slightly darker orange on hover */
-        color: #FFFFFF !important;
+        background-color: #555555;
+        color: #FFFFFF;
     }
-
-    /* Specific styling for the Submit Enquiry button */
-    div[data-testid="stForm"] button[kind="primaryFormSubmit"] {
-        background-color: #28a745 !important; /* Green background for Submit Enquiry */
-        color: #FFFFFF !important; /* White text for Submit Enquiry */
-        border: none !important;
-        border-radius: 5px !important;
-        padding: 10px 20px !important;
-        width: 100% !important; /* Ensure button is fully visible */
-    }
-    div[data-testid="stForm"] button[kind="primaryFormSubmit"]:hover {
-        background-color: #218838 !important; /* Slightly darker green on hover */
-        color: #FFFFFF !important;
-    }
-
     /* Headers */
     h1 {
         font-family: 'Stardos Stencil', sans-serif;
@@ -86,90 +64,26 @@ st.markdown("""
     }
     h2, h3 {
         font-family: 'Stardos Stencil', sans-serif;
+        color: #d8d2ea;
+    }
+    /* Text inputs and select boxes */
+    .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div {
+        background-color: #FFFFFF;
+        border: 1px solid #d8d2ea;
         color: #333333;
     }
-
-    /* Text inputs, select boxes, and text areas - Default for desktop */
-    .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
-        color: #333333 !important; /* Dark labels for white background (desktop) */
-        font-family: 'Stardos Stencil', sans-serif;
-        font-size: 14px;
-        font-weight: bold;
-    }
-    .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
-        background-color: #FFFFFF !important; /* White background for textboxes */
-        border: 1px solid #d8d2ea !important;
-        color: #333333 !important; /* Dark text for readability on white background */
-        border-radius: 5px;
-        padding: 8px;
-        font-size: 14px;
-    }
-    /* Placeholder text */
-    .stTextInput>div>input::placeholder, .stTextArea>div>textarea::placeholder {
-        color: #888888 !important;
-        opacity: 1;
-    }
-
-    /* Selectbox dropdown arrow */
-    .stSelectbox>div::after {
-        border-color: #333333 transparent transparent transparent !important;
-    }
-
     /* Dataframe */
     .stDataFrame {
         border: 1px solid #d8d2ea;
         background-color: #FFFFFF;
     }
-
-    /* Error text styling */
-    [data-testid="stAlert"] div[role="alert"] {
-        color: #8B0000 !important; /* Dark red for error text */
-    }
-
-    /* Hide the Streamlit toolbar and header */
-    [data-testid="form-card"], header[data-testid="stHeader"] {
+    /* Hide the Streamlit toolbar (including Deploy button) */
+    [data-testid="stToolbar"] {
         display: none;
     }
-
-    /* Custom class for form card (excluding submit button) */
-    .form-card {
-        background-color: #FFFFFF; /* Default white for desktop */
-        border: 1px solid #d8d2ea;
-        border-radius: 10px;
-        padding: 20px;
-    }
-
-    /* Mobile-specific adjustments */
-    @media (max-width: 600px) {
-        .form-card {
-            background-color: #000000 !important; /* Black background for mobile */
-            border: 1px solid #d8d2ea;
-            border-radius: 10px;
-            padding: 15px;
-        }
-        /* Labels - White for visibility on black background */
-        .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
-            color: #FFFFFF !important; /* White labels for black background */
-            font-size: 12px;
-        }
-        .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
-            font-size: 12px;
-            padding: 6px;
-        }
-        .stButton>button {
-            font-size: 12px;
-            padding: 8px 16px;
-        }
-        div[data-testid="stForm"] button[kind="primaryFormSubmit"] {
-            font-size: 12px;
-            padding: 8px 16px;
-        }
-        h1 {
-            font-size: 24px;
-        }
-        h2, h3 {
-            font-size: 18px;
-        }
+    /* Hide the entire header */
+    header[data-testid="stHeader"] {
+        display: none;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -360,8 +274,6 @@ with tab1:
     st.write("Interested in our resin-based furniture? Fill out the form below!")
 
     with st.form("enquiry_form"):
-        # Wrap the form fields in a card
-        st.markdown('<div class="form-card">', unsafe_allow_html=True)
         name = st.text_input("Full Name")
         email = st.text_input("Email Address")
         phone = st.text_input("Phone Number")
@@ -389,28 +301,14 @@ with tab1:
             default=[]  # No default selections
         )
         message = st.text_area("Message/Requirements")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-        # Submit button outside the card
         submit_button = st.form_submit_button("Submit Enquiry")
 
         if submit_button:
-            # Check if all required fields are filled
-            missing_fields = []
-            if not name:
-                missing_fields.append("Full Name")
-            if not email:
-                missing_fields.append("Email Address")
-            if not phone:
-                missing_fields.append("Phone Number")
-            if not furniture_types:
-                missing_fields.append("Furniture Types")
-
-            if missing_fields:
-                st.error("All fields are required.")
-            else:
+            if name and email and phone and furniture_types:
                 save_enquiry(name, email, phone, furniture_types, message)
                 st.success("Enquiry submitted successfully!")
+            else:
+                st.error("Please fill all required fields (Name, Email, Phone, Furniture Types).")
 
 # Owner Login and Dashboard
 with tab2:
@@ -422,13 +320,8 @@ with tab2:
 
     if not st.session_state.logged_in:
         with st.form("login_form"):
-            # Wrap the form fields in a card
-            st.markdown('<div class="form-card">', unsafe_allow_html=True)
             username = st.text_input("Username")
             password = st.text_input("Password", type="password")
-            st.markdown('</div>', unsafe_allow_html=True)
-
-            # Login button outside the card
             login_button = st.form_submit_button("Login")
             
             if login_button:
