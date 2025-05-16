@@ -38,22 +38,54 @@ st.markdown("""
         color: #333333;
         border-bottom: 2px solid #333333;
     }
-    /* Form container (default) */
+    /* Form container (default for desktop) */
     .stForm {
         background-color: #FFFFFF;
         border: 1px solid #d8d2ea;
         border-radius: 10px;
         padding: 20px;
     }
-    /* Buttons */
-    .stButton>button {
+    /* Mobile view form styling (black card, applied only for screens <= 768px) */
+    @media (max-width: 768px) {
+        .stForm {
+            background-color: #000000;
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        /* Adjust text inputs and select boxes for black background in mobile */
+        .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div {
+            background-color: #333333;
+            border: 1px solid #FFFFFF;
+            color: #FFFFFF;
+        }
+        /* Ensure text is visible on black background */
+        .stTextInput label, .stSelectbox label, .stMultiSelect label {
+            color: #FFFFFF;
+        }
+    }
+    /* Submit Enquiry button (green with white border and text) */
+    .stForm [data-testid="stFormSubmitButton"]>button {
+        background-color: #00FF00;
+        color: #FFFFFF;
+        border: 2px solid #FFFFFF;
+        border-radius: 5px;
+        padding: 10px 20px;
+    }
+    .stForm [data-testid="stFormSubmitButton"]>button:hover {
+        background-color: #00CC00;
+        color: #FFFFFF;
+    }
+    /* Other buttons (maintain original styling) */
+    .stButton>button:not([data-testid="stFormSubmitButton"]>button) {
         background-color: #333333;
         color: #FFFFFF;
         border: none;
         border-radius: 5px;
         padding: 10px 20px;
     }
-    .stButton>button:hover {
+    .stButton>button:not([data-testid="stFormSubmitButton"]>button):hover {
         background-color: #555555;
         color: #FFFFFF;
     }
@@ -66,7 +98,7 @@ st.markdown("""
         font-family: 'Stardos Stencil', sans-serif;
         color: #d8d2ea;
     }
-    /* Text inputs and select boxes */
+    /* Text inputs and select boxes (default for desktop) */
     .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div {
         background-color: #FFFFFF;
         border: 1px solid #d8d2ea;
@@ -84,38 +116,6 @@ st.markdown("""
     /* Hide the entire header */
     header[data-testid="stHeader"] {
         display: none;
-    }
-    /* Mobile view styling for Enquiry Form (black card) */
-    @media (max-width: 768px) {
-        .stForm {
-            background-color: #1C2526; /* Blackish color for card */
-            border: 1px solid #FFFFFF;
-            border-radius: 15px;
-            padding: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        }
-        /* Form inputs in mobile view */
-        .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div {
-            background-color: #2E2E2E;
-            border: 1px solid #FFFFFF;
-            color: #FFFFFF;
-            border-radius: 5px;
-        }
-        /* Form labels and text */
-        .stTextInput>label, .stSelectbox>label, .stMultiSelect>label, .stTextArea>label {
-            color: #FFFFFF;
-            font-family: 'Stardos Stencil', sans-serif;
-        }
-        /* Submit button in mobile view */
-        .stButton>button {
-            background-color: #FFFFFF;
-            color: #1C2526;
-            border: 1px solid #FFFFFF;
-        }
-        .stButton>button:hover {
-            background-color: #E0E0E0;
-            color: #1C2526;
-        }
     }
     </style>
 """, unsafe_allow_html=True)
@@ -257,8 +257,143 @@ def generate_pdf(df):
     # Prepare data for PDF table
     data = [df.columns.tolist()] + df.values.tolist()
     
-    # Convert all cells to at a time. I can generate one artifact per response unless you explicitly ask for more.
+    # Convert all cells to Paragraphs for wrapping, except header
+    wrapped_data = []
+    for i, row in enumerate(data):
+        if i == 0:  # Header row
+            wrapped_row = [Paragraph(str(cell), styles['Heading4']) for cell in row]
+        else:  # Data rows
+            wrapped_row = [Paragraph(str(cell) if cell else "", cell_style) for cell in row]
+        wrapped_data.append(wrapped_row)
+    
+    # Define column widths to fit letter page (612pt width, minus 72pt margins = 540pt)
+    col_widths = [40, 80, 100, 80, 140, 80, 80]  # Adjusted for id, name, email, phone, furniture_type, message, timestamp
+    
+    # Create table
+    table = Table(wrapped_data, colWidths=col_widths)
+    
+    # Style the table with white and #d8d2ea
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#d8d2ea')),  # Header background
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),  # Header text
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 8),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),  # Body background
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d8d2ea')),  # Grid lines
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#d8d2ea')),  # Table border
+    ]))
+    
+    elements.append(table)
+    doc.build(elements)
+    return output.getvalue()
 
-The error you encountered was due to curly apostrophes in a comment or string, which I've fixed by ensuring all apostrophes are straight. The artifact above includes the complete `app.py` with the black card styling for the Enquiry Form in mobile view (screen width ≤ 768px), as requested. The black card has a dark background (#1C2526), white borders, white text, and a subtle shadow for a modern look, applied only to the Enquiry Form tab in mobile view.
+# Initialize database and default owner
+init_db()
+add_default_owner()
 
-If the Mozilla-related content is part of a different file or you need further modifications (e.g., incorporating the Mozilla text into documentation or another section), please provide more details, and I can generate an additional artifact or update this one. Let me know if you need anything else!
+# Tabs for Enquiry Form and Owner Login
+tab1, tab2 = st.tabs(["Enquiry Form", "Owner Login"])
+
+# Enquiry Form (Publicly Accessible)
+with tab1:
+    st.title("Sylva Decors Enquiry Form")
+    st.write("Interested in our resin-based furniture? Fill out the form below!")
+
+    with st.form("enquiry_form"):
+        name = st.text_input("Full Name")
+        email = st.text_input("Email Address")
+        phone = st.text_input("Phone Number")
+        furniture_types = st.multiselect(
+            "Furniture Types",
+            [
+                "Resin Furniture- Coffee Table",
+                "Resin Furniture-Center Table",
+                "Resin Furniture- Wall Panels",
+                "Resin Furniture- Dining Table",
+                "Resin Furniture- Conference Table",
+                "Wall Decors - Geocode Wall Art",
+                "Wall Decors-Ocean Inspired Wall Panels",
+                "Wall Decors - Resin Wall Clock",
+                "Functional Decors - Theme Based Coaster Set",
+                "Functional Decors - Wood Resin Trays",
+                "Functional Decors - Customized Name Plates",
+                "Preservation Arts - Wedding Varmala's & Florals",
+                "Preservation Art - Umbilical Cords",
+                "Preservation Art - Pet Keepsakes",
+                "Corporate Corner - Corporate Gifting",
+                "Corporate Corner - Resin Trophies & Medals",
+                "Corporate Corner - Artistic Resin Furniture & Corporate Spaces"
+            ],
+            default=[]  # No default selections
+        )
+        message = st.text_area("Message/Requirements")
+        submit_button = st.form_submit_button("Submit Enquiry")
+
+        if submit_button:
+            if name and email and phone and furniture_types:
+                save_enquiry(name, email, phone, furniture_types, message)
+                st.success("Enquiry submitted successfully!")
+            else:
+                st.error("Please fill all required fields (Name, Email, Phone, Furniture Types).")
+
+# Owner Login and Dashboard
+with tab2:
+    st.title("Owner Login - Sylva Decors")
+
+    # Session state for login
+    if 'logged_in' not in st.session_state:
+        st.session_state.logged_in = False
+
+    if not st.session_state.logged_in:
+        with st.form("login_form"):
+            username = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            login_button = st.form_submit_button("Login")
+            
+            if login_button:
+                if verify_login(username, password):
+                    st.session_state.logged_in = True
+                    st.success("Logged in successfully!")
+                    st.rerun()
+                else:
+                    st.error("Invalid username or password")
+    else:
+        st.subheader("Owner Dashboard")
+        st.write("View and download customer enquiries.")
+
+        # Fetch and display enquiries
+        enquiries = get_enquiries()
+        if not enquiries.empty:
+            st.dataframe(enquiries, use_container_width=True)
+            
+            # Download buttons
+            col1, col2, col3 = st.columns([1, 1, 1])
+            with col1:
+                excel_data = generate_excel(enquiries)
+                st.download_button(
+                    label="Download as Excel",
+                    data=excel_data,
+                    file_name=f"sylva_decors_enquiries_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            with col2:
+                pdf_data = generate_pdf(enquiries)
+                st.download_button(
+                    label="Download as PDF",
+                    data=pdf_data,
+                    file_name=f"sylva_decors_enquiries_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                    mime="application/pdf"
+                )
+            with col3:
+                if st.button("Logout"):
+                    st.session_state.logged_in = False
+                    st.success("Logged out successfully!")
+                    st.rerun()
+        else:
+            st.info("No enquiries found.")
