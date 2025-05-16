@@ -74,28 +74,10 @@ st.markdown("""
         border-radius: 5px !important;
         padding: 10px 20px !important;
         width: 100% !important; /* Ensure button is fully visible */
-        position: relative; /* For overlay effect */
-        overflow: hidden; /* Ensure overlay stays within bounds */
-        transition: all 0.3s ease; /* Smooth transition for hover effects */
     }
     div[data-testid="stForm"] button[kind="primaryFormSubmit"]:hover {
         background-color: #218838 !important; /* Slightly darker green on hover */
         color: #FFFFFF !important;
-    }
-    /* Overlay effect for Submit Enquiry button */
-    div[data-testid="stForm"] button[kind="primaryFormSubmit"]::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.2); /* Light overlay for shine effect */
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-    div[data-testid="stForm"] button[kind="primaryFormSubmit"]:hover::after {
-        opacity: 1; /* Show overlay on hover */
     }
 
     /* Headers */
@@ -172,9 +154,16 @@ st.markdown("""
             font-size: 12px;
             padding: 8px 16px;
         }
+        /* Reinforce Submit Enquiry button styling for mobile */
         div[data-testid="stForm"] button[kind="primaryFormSubmit"] {
+            background-color: #28a745 !important; /* Green background for Submit Enquiry */
+            color: #FFFFFF !important; /* White text for Submit Enquiry */
             font-size: 12px;
             padding: 8px 16px;
+        }
+        div[data-testid="stForm"] button[kind="primaryFormSubmit"]:hover {
+            background-color: #218838 !important; /* Slightly darker green on hover */
+            color: #FFFFFF !important;
         }
         h1 {
             font-size: 24px;
