@@ -18,7 +18,7 @@ load_dotenv()
 # Streamlit app configuration (MUST be the first Streamlit command)
 st.set_page_config(page_title="Sylva Decors Enquiry System", page_icon="🪵", layout="wide")
 
-# Custom CSS for styling across mobile, tablet, and desktop
+# Custom CSS for styling with improved mobile view
 st.markdown("""
     <style>
     /* Import Stardos Stencil font from Google Fonts */
@@ -37,9 +37,6 @@ st.markdown("""
         font-family: 'Stardos Stencil', sans-serif;
         font-size: 16px;
         padding: 10px 20px;
-        border: 1px solid #d8d2ea;
-        border-bottom: none;
-        border-radius: 5px 5px 0 0;
     }
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
         background-color: #FFFFFF;
@@ -52,52 +49,43 @@ st.markdown("""
         background-color: #FFFFFF;
         border: 1px solid #d8d2ea;
         border-radius: 10px;
-        padding: 30px;
-        max-width: 800px;
-        margin: 0 auto;
+        padding: 20px;
     }
 
     /* Buttons */
     .stButton>button {
-        background-color: #E6E6E6 !important;
-        color: #333333 !important;
-        border: 1px solid #D3D3D3 !important;
+        background-color: #ff6200 !important; /* Orange background for submit button */
+        color: #FFFFFF !important; /* White text for submit button */
+        border: none;
         border-radius: 5px;
         padding: 10px 20px;
-        font-family: 'Stardos Stencil', sans-serif;
     }
     .stButton>button:hover {
-        background-color: #D3D3D3 !important;
-        color: #333333 !important;
+        background-color: #e55a00 !important; /* Slightly darker orange on hover */
+        color: #FFFFFF !important;
     }
 
     /* Headers */
     h1 {
         font-family: 'Stardos Stencil', sans-serif;
         color: #333333;
-        text-align: center;
     }
     h2, h3 {
         font-family: 'Stardos Stencil', sans-serif;
         color: #333333;
     }
-    p {
-        font-family: 'Stardos Stencil', sans-serif;
-        color: #333333;
-        text-align: center;
-    }
 
     /* Text inputs, select boxes, and text areas */
     .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
-        color: #666666 !important;
+        color: #333333 !important;
         font-family: 'Stardos Stencil', sans-serif;
         font-size: 14px;
         font-weight: bold;
     }
     .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
-        background-color: #F7F9FB !important;
-        border: 1px solid #D3D3D3 !important;
-        color: #333333 !important;
+        background-color: #FFFFFF !important; /* White background for textboxes */
+        border: 1px solid #d8d2ea !important;
+        color: #333333 !important; /* Dark text for readability */
         border-radius: 5px;
         padding: 8px;
         font-size: 14px;
@@ -117,8 +105,6 @@ st.markdown("""
     .stDataFrame {
         border: 1px solid #d8d2ea;
         background-color: #FFFFFF;
-        max-width: 100%;
-        margin: 0 auto;
     }
 
     /* Hide the Streamlit toolbar and header */
@@ -126,64 +112,10 @@ st.markdown("""
         display: none;
     }
 
-    /* Desktop view (default) */
-    .stForm {
-        padding: 30px;
-    }
-    .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
-        font-size: 14px;
-    }
-    .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
-        font-size: 14px;
-        padding: 8px;
-    }
-    .stButton>button {
-        font-size: 14px;
-        padding: 10px 20px;
-    }
-    h1 {
-        font-size: 32px;
-    }
-    h2, h3 {
-        font-size: 24px;
-    }
-    p {
-        font-size: 16px;
-    }
-
-    /* Tablet view */
-    @media (max-width: 768px) {
-        .stForm {
-            padding: 20px;
-            max-width: 90%;
-        }
-        .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
-            font-size: 13px;
-        }
-        .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div, .stTextArea>div>textarea {
-            font-size: 13px;
-            padding: 7px;
-        }
-        .stButton>button {
-            font-size: 13px;
-            padding: 8px 16px;
-        }
-        h1 {
-            font-size: 28px;
-        }
-        h2, h3 {
-            font-size: 20px;
-        }
-        p {
-            font-size: 14px;
-        }
-    }
-
-    /* Mobile view */
+    /* Mobile-specific adjustments */
     @media (max-width: 600px) {
         .stForm {
             padding: 15px;
-            max-width: 100%;
         }
         .stTextInput label, .stSelectbox label, .stMultiSelect label, .stTextArea label {
             font-size: 12px;
@@ -201,13 +133,6 @@ st.markdown("""
         }
         h2, h3 {
             font-size: 18px;
-        }
-        p {
-            font-size: 12px;
-        }
-        .stTabs [data-baseweb="tab"] {
-            font-size: 14px;
-            padding: 8px 16px;
         }
     }
     </style>
@@ -429,11 +354,22 @@ with tab1:
         submit_button = st.form_submit_button("Submit Enquiry")
 
         if submit_button:
-            if name and email and phone and furniture_types and message:
+            # Check if all required fields are filled
+            missing_fields = []
+            if not name:
+                missing_fields.append("Full Name")
+            if not email:
+                missing_fields.append("Email Address")
+            if not phone:
+                missing_fields.append("Phone Number")
+            if not furniture_types:
+                missing_fields.append("Furniture Types")
+
+            if missing_fields:
+                st.error("All fields are required.")
+            else:
                 save_enquiry(name, email, phone, furniture_types, message)
                 st.success("Enquiry submitted successfully!")
-            else:
-                st.error("All fields are required.")
 
 # Owner Login and Dashboard
 with tab2:
