@@ -11,6 +11,11 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -132,68 +137,103 @@ st.markdown("""
 # Cache database connection
 @st.cache_resource
 def get_db_connection():
-    connection_string = f"postgresql+psycopg2://{os.getenv('PG_USER')}:{os.getenv('PG_PASSWORD')}@{os.getenv('PG_HOST')}:{os.getenv('PG_PORT')}/{os.getenv('PG_DATABASE')}"
-    return create_engine(connection_string)
+    connection_string = (
+        f"postgresql+psycopg2://{os.getenv('PG_USER')}:{os.getenv('PG_PASSWORD')}@"
+        f"{os.getenv('PG_HOST')}:{os.getenv('PG_PORT')}/{os.getenv('PG_DATABASE')}?sslmode=require"
+    )
+    logger.info(f"Attempting to connect with connection string (password masked): {connection_string.replace(os.getenv('PG_PASSWORD'), '****')}")
+    try:
+        engine = create_engine(connection_string)
+        return engine
+    except Exception as e:
+        logger.error(f"Failed to create database engine: {str(e)}")
+        raise
 
 # Database initialization
 @st.cache_resource
 def init_db():
     engine = get_db_connection()
-    with engine.connect() as conn:
-        conn.execute(text('''CREATE TABLE IF NOT EXISTS enquiries (
-                             id SERIAL PRIMARY KEY,
-                             name VARCHAR(255),
-                             email VARCHAR(255),
-                             phone VARCHAR(255),
-                             furniture_type VARCHAR(255),
-                             message TEXT,
-                             timestamp TIMESTAMP
-                             )'''))
-        conn.execute(text('''CREATE TABLE IF NOT EXISTS users (
-                             username VARCHAR(255) PRIMARY KEY,
-                             password VARCHAR(255)
-                             )'''))
-        conn.commit()
+    try:
+        with engine.connect() as conn:
+            logger.info("Database connection established")
+            conn.execute(text('''CREATE TABLE IF NOT EXISTS enquiries (
+                                 id SERIAL PRIMARY KEY,
+                                 name VARCHAR(255),
+                                 email VARCHAR(255),
+                                 phone VARCHAR(255),
+                                 furniture_type VARCHAR(255),
+                                 message TEXT,
+                                 timestamp TIMESTAMP
+                                 )'''))
+            conn.execute(text('''CREATE TABLE IF NOT EXISTS users (
+                                 username VARCHAR(255) PRIMARY KEY,
+                                 password VARCHAR(255)
+                                 )'''))
+            conn.commit()
+            logger.info("Database tables initialized")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {str(e)}")
+        raise
 
 # Add default owner credentials
 @st.cache_resource
 def add_default_owner():
     engine = get_db_connection()
-    with engine.connect() as conn:
-        result = conn.execute(text("SELECT * FROM users WHERE username = :username"), {"username": "owner"}).fetchone()
-        if not result:
-            hashed = bcrypt.hashpw('sylva123'.encode('utf-8'), bcrypt.gensalt())
-            conn.execute(text("INSERT INTO users (username, password) VALUES (:username, :password)"),
-                         {"username": "owner", "password": hashed.decode('utf-8')})
-            conn.commit()
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT * FROM users WHERE username = :username"), {"username": "owner"}).fetchone()
+            if not result:
+                hashed = bcrypt.hashpw('sylva123'.encode('utf-8'), bcrypt.gensalt())
+                conn.execute(text("INSERT INTO users (username, password) VALUES (:username, :password)"),
+                             {"username": "owner", "password": hashed.decode('utf-8')})
+                conn.commit()
+                logger.info("Default owner credentials added")
+    except Exception as e:
+        logger.error(f"Failed to add default owner: {str(e)}")
+        raise
 
 # Verify login credentials
 def verify_login(username, password):
     engine = get_db_connection()
-    with engine.connect() as conn:
-        result = conn.execute(text("SELECT password FROM users WHERE username = :username"), {"username": username}).fetchone()
-        if result:
-            stored_password = result[0]
-            return bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8'))
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT password FROM users WHERE username = :username"), {"username": username}).fetchone()
+            if result:
+                stored_password = result[0]
+                return bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8'))
+            return False
+    except Exception as e:
+        logger.error(f"Login verification failed: {str(e)}")
         return False
 
 # Save enquiry to database
 def save_enquiry(name, email, phone, furniture_types, message):
     engine = get_db_connection()
-    with engine.connect() as conn:
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        furniture_type_str = ", ".join(furniture_types) if furniture_types else ""
-        conn.execute(text('''INSERT INTO enquiries (name, email, phone, furniture_type, message, timestamp)
-                             VALUES (:name, :email, :phone, :furniture_type, :message, :timestamp)'''),
-                     {"name": name, "email": email, "phone": phone, "furniture_type": furniture_type_str,
-                      "message": message, "timestamp": timestamp})
-        conn.commit()
+    try:
+        with engine.connect() as conn:
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            furniture_type_str = ", ".join(furniture_types) if furniture_types else ""
+            conn.execute(text('''INSERT INTO enquiries (name, email, phone, furniture_type, message, timestamp)
+                                 VALUES (:name, :email, :phone, :furniture_type, :message, :timestamp)'''),
+                         {"name": name, "email": email, "phone": phone, "furniture_type": furniture_type_str,
+                          "message": message, "timestamp": timestamp})
+            conn.commit()
+            logger.info("Enquiry saved successfully")
+    except Exception as e:
+        logger.error(f"Failed to save enquiry: {str(e)}")
+        raise
 
 # Cache enquiries fetch
 @st.cache_data
 def get_enquiries():
     engine = get_db_connection()
-    return pd.read_sql_query("SELECT * FROM enquiries", engine)
+    try:
+        df = pd.read_sql_query("SELECT * FROM enquiries", engine)
+        logger.info("Enquiries fetched successfully")
+        return df
+    except Exception as e:
+        logger.error(f"Failed to fetch enquiries: {str(e)}")
+        raise
 
 # Cache Excel generation
 @st.cache_data
@@ -293,8 +333,11 @@ def generate_pdf(df):
     return output.getvalue()
 
 # Initialize database and owner
-init_db()
-add_default_owner()
+try:
+    init_db()
+    add_default_owner()
+except Exception as e:
+    st.error(f"Failed to initialize database: {str(e)}")
 
 # Initialize session state
 if 'logged_in' not in st.session_state:
@@ -330,8 +373,11 @@ with tab1:
 
         if submit_button:
             if name and email and phone and furniture_types:
-                save_enquiry(name, email, phone, furniture_types, message)
-                st.success("Enquiry submitted successfully!")
+                try:
+                    save_enquiry(name, email, phone, furniture_types, message)
+                    st.success("Enquiry submitted successfully!")
+                except Exception as e:
+                    st.error(f"Failed to submit enquiry: {str(e)}")
             else:
                 st.error("Please fill all required fields (Name, Email, Phone, Furniture Types).")
 
@@ -356,31 +402,35 @@ with tab2:
         st.subheader("Owner Dashboard")
         st.write("View and download customer enquiries.")
 
-        enquiries = get_enquiries()
-        if not enquiries.empty:
-            st.dataframe(enquiries, use_container_width=True)
-            
-            col1, col2, col3 = st.columns([1, 1, 1])
-            with col1:
-                excel_data = generate_excel(enquiries)
-                st.download_button(
-                    label="Download as Excel",
-                    data=excel_data,
-                    file_name=f"sylva_decors_enquiries_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-            with col2:
-                pdf_data = generate_pdf(enquiries)
-                st.download_button(
-                    label="Download as PDF",
-                    data=pdf_data,
-                    file_name=f"sylva_decors_enquiries_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-                    mime="application/pdf"
-                )
-            with col3:
-                if st.button("Logout"):
-                    st.session_state.logged_in = False
-                    st.success("Logged out successfully!")
-                    st.rerun()
-        else:
-            st.info("No enquiries found.")
+        try:
+            enquiries = get_enquiries()
+            if not enquiries.empty:
+                st.dataframe(enquiries, use_container_width=True)
+                
+                col1, col2, col3 = st.columns([1, 1, 1])
+                with col1:
+                    excel_data = generate_excel(enquiries)
+                    st.download_button(
+                        label="Download as Excel",
+                        data=excel_data,
+                        file_name=f"sylva_decors_enquiries_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+               :wq
+                with col2:
+                    pdf_data = generate_pdf(enquiries)
+                    st.download_button(
+                        label="Download as PDF",
+                        data=pdf_data,
+                        file_name=f"sylva_decors_enquiries_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                        mime="application/pdf"
+                    )
+                with col3:
+                    if st.button("Logout"):
+                        st.session_state.logged_in = False
+                        st.success("Logged out successfully!")
+                        st.rerun()
+            else:
+                st.info("No enquiries found.")
+        except Exception as e:
+            st.error(f"Failed to load enquiries: {str(e)}")
