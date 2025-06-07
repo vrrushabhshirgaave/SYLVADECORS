@@ -11,8 +11,13 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+import logging
 
-# Load environment variables
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Load environment variables (for local development)
 load_dotenv()
 
 # Streamlit app configuration
@@ -132,169 +137,224 @@ st.markdown("""
 # Cache database connection
 @st.cache_resource
 def get_db_connection():
-    connection_string = f"postgresql+psycopg2://{os.getenv('PG_USER')}:{os.getenv('PG_PASSWORD')}@{os.getenv('PG_HOST')}:{os.getenv('PG_PORT')}/{os.getenv('PG_DATABASE')}"
-    return create_engine(connection_string)
+    try:
+        connection_string = f"postgresql+psycopg2://{os.getenv('PG_USER')}:{os.getenv('PG_PASSWORD')}@{os.getenv('PG_HOST')}:{os.getenv('PG_PORT')}/{os.getenv('PG_DATABASE')}?sslmode=require"
+        engine = create_engine(connection_string)
+        # Test connection
+        with engine.connect() as conn:
+            logger.info("Database connection established successfully")
+        return engine
+    except Exception as e:
+        logger.error(f"Failed to connect to database: {str(e)}")
+        st.error(f"Database connection error: {str(e)}")
+        raise
 
 # Database initialization
 @st.cache_resource
 def init_db():
-    engine = get_db_connection()
-    with engine.connect() as conn:
-        conn.execute(text('''CREATE TABLE IF NOT EXISTS enquiries (
-                             id SERIAL PRIMARY KEY,
-                             name VARCHAR(255),
-                             email VARCHAR(255),
-                             phone VARCHAR(255),
-                             furniture_type VARCHAR(255),
-                             message TEXT,
-                             timestamp TIMESTAMP
-                             )'''))
-        conn.execute(text('''CREATE TABLE IF NOT EXISTS users (
-                             username VARCHAR(255) PRIMARY KEY,
-                             password VARCHAR(255)
-                             )'''))
-        conn.commit()
+    try:
+        engine = get_db_connection()
+        with engine.connect() as conn:
+            conn.execute(text('''CREATE TABLE IF NOT EXISTS enquiries (
+                                 id SERIAL PRIMARY KEY,
+                                 name VARCHAR(255),
+                                 email VARCHAR(255),
+                                 phone VARCHAR(255),
+                                 furniture_type VARCHAR(255),
+                                 message TEXT,
+                                 timestamp TIMESTAMP
+                                 )'''))
+            conn.execute(text('''CREATE TABLE IF NOT EXISTS users (
+                                 username VARCHAR(255) PRIMARY KEY,
+                                 password VARCHAR(255)
+                                 )'''))
+            conn.commit()
+            logger.info("Database tables initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {str(e)}")
+        st.error(f"Database initialization error: {str(e)}")
+        raise
 
 # Add default owner credentials
 @st.cache_resource
 def add_default_owner():
-    engine = get_db_connection()
-    with engine.connect() as conn:
-        result = conn.execute(text("SELECT * FROM users WHERE username = :username"), {"username": "owner"}).fetchone()
-        if not result:
-            hashed = bcrypt.hashpw('sylva123'.encode('utf-8'), bcrypt.gensalt())
-            conn.execute(text("INSERT INTO users (username, password) VALUES (:username, :password)"),
-                         {"username": "owner", "password": hashed.decode('utf-8')})
-            conn.commit()
+    try:
+        engine = get_db_connection()
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT * FROM users WHERE username = :username"), {"username": "owner"}).fetchone()
+            if not result:
+                hashed = bcrypt.hashpw('sylva123'.encode('utf-8'), bcrypt.gensalt())
+                conn.execute(text("INSERT INTO users (username, password) VALUES (:username, :password)"),
+                             {"username": "owner", "password": hashed.decode('utf-8')})
+                conn.commit()
+                logger.info("Default owner added successfully")
+    except Exception as e:
+        logger.error(f"Failed to add default owner: {str(e)}")
+        st.error(f"Error adding default owner: {str(e)}")
+        raise
 
 # Verify login credentials
 def verify_login(username, password):
-    engine = get_db_connection()
-    with engine.connect() as conn:
-        result = conn.execute(text("SELECT password FROM users WHERE username = :username"), {"username": username}).fetchone()
-        if result:
-            stored_password = result[0]
-            return bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8'))
+    try:
+        engine = get_db_connection()
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT password FROM users WHERE username = :username"), {"username": username}).fetchone()
+            if result:
+                stored_password = result[0]
+                return bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8'))
+            return False
+    except Exception as e:
+        logger.error(f"Login verification failed: {str(e)}")
+        st.error(f"Login error: {str(e)}")
         return False
 
 # Save enquiry to database
 def save_enquiry(name, email, phone, furniture_types, message):
-    engine = get_db_connection()
-    with engine.connect() as conn:
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        furniture_type_str = ", ".join(furniture_types) if furniture_types else ""
-        conn.execute(text('''INSERT INTO enquiries (name, email, phone, furniture_type, message, timestamp)
-                             VALUES (:name, :email, :phone, :furniture_type, :message, :timestamp)'''),
-                     {"name": name, "email": email, "phone": phone, "furniture_type": furniture_type_str,
-                      "message": message, "timestamp": timestamp})
-        conn.commit()
+    try:
+        engine = get_db_connection()
+        with engine.connect() as conn:
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            furniture_type_str = ", ".join(furniture_types) if furniture_types else ""
+            conn.execute(text('''INSERT INTO enquiries (name, email, phone, furniture_type, message, timestamp)
+                                 VALUES (:name, :email, :phone, :furniture_type, :message, :timestamp)'''),
+                         {"name": name, "email": email, "phone": phone, "furniture_type": furniture_type_str,
+                          "message": message, "timestamp": timestamp})
+            conn.commit()
+            logger.info("Enquiry saved successfully")
+    except Exception as e:
+        logger.error(f"Failed to save enquiry: {str(e)}")
+        st.error(f"Error saving enquiry: {str(e)}")
+        raise
 
 # Cache enquiries fetch
 @st.cache_data
 def get_enquiries():
-    engine = get_db_connection()
-    return pd.read_sql_query("SELECT * FROM enquiries", engine)
+    try:
+        engine = get_db_connection()
+        df = pd.read_sql_query("SELECT * FROM enquiries", engine)
+        logger.info("Enquiries fetched successfully")
+        return df
+    except Exception as e:
+        logger.error(f"Failed to fetch enquiries: {str(e)}")
+        st.error(f"Error fetching enquiries: {str(e)}")
+        raise
 
 # Cache Excel generation
 @st.cache_data
 def generate_excel(df):
-    output = BytesIO()
-    workbook = openpyxl.Workbook()
-    sheet = workbook.active
-    sheet.title = "Enquiries"
-    
-    sheet['A1'] = "Sylva Decors Inquiry List"
-    sheet.merge_cells('A1:G1')
-    title_cell = sheet['A1']
-    title_cell.font = openpyxl.styles.Font(bold=True, size=14)
-    title_cell.alignment = openpyxl.styles.Alignment(horizontal='center')
-    
-    for r_idx, row in enumerate(pd.DataFrame([df.columns]).values, 2):
-        for c_idx, value in enumerate(row, 1):
-            sheet.cell(row=r_idx, column=c_idx).value = value
-            sheet.cell(row=r_idx, column=c_idx).font = openpyxl.styles.Font(bold=True)
-    for r_idx, row in enumerate(df.values, 3):
-        for c_idx, value in enumerate(row, 1):
-            sheet.cell(row=r_idx + 1, column=c_idx).value = value
-    
-    for col_idx in range(1, 8):
-        column_letter = openpyxl.utils.get_column_letter(col_idx)
-        max_length = 0
-        for row in sheet[f"{column_letter}2:{column_letter}{sheet.max_row}"]:
-            cell = row[0]
-            if not isinstance(cell, openpyxl.cell.cell.MergedCell):
-                try:
-                    if len(str(cell.value)) > max_length:
-                        max_length = len(str(cell.value))
-                except:
-                    pass
-        adjusted_width = min((max_length + 2), 50)
-        sheet.column_dimensions[column_letter].width = adjusted_width
-    
-    workbook.save(output)
-    return output.getvalue()
+    try:
+        output = BytesIO()
+        workbook = openpyxl.Workbook()
+        sheet = workbook.active
+        sheet.title = "Enquiries"
+        
+        sheet['A1'] = "Sylva Decors Inquiry List"
+        sheet.merge_cells('A1:G1')
+        title_cell = sheet['A1']
+        title_cell.font = openpyxl.styles.Font(bold=True, size=14)
+        title_cell.alignment = openpyxl.styles.Alignment(horizontal='center')
+        
+        for r_idx, row in enumerate(pd.DataFrame([df.columns]).values, 2):
+            for c_idx, value in enumerate(row, 1):
+                sheet.cell(row=r_idx, column=c_idx).value = value
+                sheet.cell(row=r_idx, column=c_idx).font = openpyxl.styles.Font(bold=True)
+        for r_idx, row in enumerate(df.values, 3):
+            for c_idx, value in enumerate(row, 1):
+                sheet.cell(row=r_idx + 1, column=c_idx).value = value
+        
+        for col_idx in range(1, 8):
+            column_letter = openpyxl.utils.get_column_letter(col_idx)
+            max_length = 0
+            for row in sheet[f"{column_letter}2:{column_letter}{sheet.max_row}"]:
+                cell = row[0]
+                if not isinstance(cell, openpyxl.cell.cell.MergedCell):
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+            adjusted_width = min((max_length + 2), 50)
+            sheet.column_dimensions[column_letter].width = adjusted_width
+        
+        workbook.save(output)
+        logger.info("Excel file generated successfully")
+        return output.getvalue()
+    except Exception as e:
+        logger.error(f"Failed to generate Excel: {str(e)}")
+        st.error(f"Error generating Excel: {str(e)}")
+        raise
 
 # Cache PDF generation
 @st.cache_data
 def generate_pdf(df):
-    output = BytesIO()
-    doc = SimpleDocTemplate(output, pagesize=letter, leftMargin=36, rightMargin=36, topMargin=36, bottomMargin=36)
-    elements = []
-    
-    styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        name='TitleStyle',
-        parent=styles['Heading1'],
-        fontName='Helvetica-Bold',
-        fontSize=12,
-        spaceAfter=12,
-        alignment=1,
-    )
-    cell_style = ParagraphStyle(
-        name='CellStyle',
-        parent=styles['Normal'],
-        fontName='Helvetica',
-        fontSize=8,
-        leading=10,
-        wordWrap='CJK',
-        alignment=1,
-    )
-    
-    title = Paragraph("Sylva Decors Inquiry List", title_style)
-    elements.append(title)
-    elements.append(Spacer(1, 12))
-    
-    data = [df.columns.tolist()] + df.values.tolist()
-    wrapped_data = []
-    for i, row in enumerate(data):
-        wrapped_row = [Paragraph(str(cell), styles['Heading4'] if i == 0 else cell_style) for cell in row]
-        wrapped_data.append(wrapped_row)
-    
-    col_widths = [40, 80, 100, 80, 140, 80, 80]
-    table = Table(wrapped_data, colWidths=col_widths)
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#d8d2ea')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 8),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('FONTSIZE', (0, 1), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d8d2ea')),
-        ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#d8d2ea')),
-    ]))
-    
-    elements.append(table)
-    doc.build(elements)
-    return output.getvalue()
+    try:
+        output = BytesIO()
+        doc = SimpleDocTemplate(output, pagesize=letter, leftMargin=36, rightMargin=36, topMargin=36, bottomMargin=36)
+        elements = []
+        
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            name='TitleStyle',
+            parent=styles['Heading1'],
+            fontName='Helvetica-Bold',
+            fontSize=12,
+            spaceAfter=12,
+            alignment=1,
+        )
+        cell_style = ParagraphStyle(
+            name='CellStyle',
+            parent=styles['Normal'],
+            fontName='Helvetica',
+            fontSize=8,
+            leading=10,
+            wordWrap='CJK',
+            alignment=1,
+        )
+        
+        title = Paragraph("Sylva Decors Inquiry List", title_style)
+        elements.append(title)
+        elements.append(Spacer(1, 12))
+        
+        data = [df.columns.tolist()] + df.values.tolist()
+        wrapped_data = []
+        for i, row in enumerate(data):
+            wrapped_row = [Paragraph(str(cell), styles['Heading4'] if i == 0 else cell_style) for cell in row]
+            wrapped_data.append(wrapped_row)
+        
+        col_widths = [40, 80, 100, 80, 140, 80, 80]
+        table = Table(wrapped_data, colWidths=col_widths)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#d8d2ea')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 8),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d8d2ea')),
+            ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#d8d2ea')),
+        ]))
+        
+        elements.append(table)
+        doc.build(elements)
+        logger.info("PDF file generated successfully")
+        return output.getvalue()
+    except Exception as e:
+        logger.error(f"Failed to generate PDF: {str(e)}")
+        st.error(f"Error generating PDF: {str(e)}")
+        raise
 
 # Initialize database and owner
-init_db()
-add_default_owner()
+try:
+    init_db()
+    add_default_owner()
+except Exception as e:
+    st.error(f"Initialization error: {str(e)}")
+    logger.error(f"Initialization error: {str(e)}")
 
 # Initialize session state
 if 'logged_in' not in st.session_state:
@@ -330,8 +390,11 @@ with tab1:
 
         if submit_button:
             if name and email and phone and furniture_types:
-                save_enquiry(name, email, phone, furniture_types, message)
-                st.success("Enquiry submitted successfully!")
+                try:
+                    save_enquiry(name, email, phone, furniture_types, message)
+                    st.success("Enquiry submitted successfully!")
+                except Exception as e:
+                    st.error(f"Error submitting enquiry: {str(e)}")
             else:
                 st.error("Please fill all required fields (Name, Email, Phone, Furniture Types).")
 
@@ -356,31 +419,40 @@ with tab2:
         st.subheader("Owner Dashboard")
         st.write("View and download customer enquiries.")
 
-        enquiries = get_enquiries()
-        if not enquiries.empty:
-            st.dataframe(enquiries, use_container_width=True)
-            
-            col1, col2, col3 = st.columns([1, 1, 1])
-            with col1:
-                excel_data = generate_excel(enquiries)
-                st.download_button(
-                    label="Download as Excel",
-                    data=excel_data,
-                    file_name=f"sylva_decors_enquiries_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-            with col2:
-                pdf_data = generate_pdf(enquiries)
-                st.download_button(
-                    label="Download as PDF",
-                    data=pdf_data,
-                    file_name=f"sylva_decors_enquiries_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-                    mime="application/pdf"
-                )
-            with col3:
-                if st.button("Logout"):
-                    st.session_state.logged_in = False
-                    st.success("Logged out successfully!")
-                    st.rerun()
-        else:
-            st.info("No enquiries found.")
+        try:
+            enquiries = get_enquiries()
+            if not enquiries.empty:
+                st.dataframe(enquiries, use_container_width=True)
+                
+                col1, col2, col3 = st.columns([1, 1, 1])
+                with col1:
+                    excel_data = generate_excel(enquiries)
+                    st.download_button(
+                        label="Download as Excel",
+                        data=excel_data,
+                        file_name=f"sylva_decors_enquiries_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+                with col2:
+                    pdf_data = generate_pdf(enquiries)
+                    st.download_button(
+                        label="Download as PDF",
+                        data=pdf_data,
+                        file_name=f"sylva_decors_enquiries_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                        mime="application/pdf"
+                    )
+                with col3:
+                    if st.button("Logout"):
+                        st.session_state.logged_in = False
+                        st.success("Logged out successfully!")
+                        st.rerun()
+            else:
+                st.info("No enquiries found.")
+        except Exception as e:
+            st.error(f"Error loading dashboard: {str(e)}")
+
+# Cache clear button for debugging
+if st.button("Clear Cache (Debug)"):
+    st.cache_resource.clear()
+    st.cache_data.clear()
+    st.success("Cache cleared!")
