@@ -15,20 +15,17 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 # Load environment variables
 load_dotenv()
 
-# Streamlit app configuration (MUST be the first Streamlit command)
+# Streamlit app configuration
 st.set_page_config(page_title="Sylva Decors Enquiry System", page_icon="🪵", layout="wide")
 
-# Custom CSS for styling with #d8d2ea and white background, dark headers, and Stardos Stencil font
+# Custom CSS for styling
 st.markdown("""
     <style>
-    /* Import Stardos Stencil font from Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Stardos+Stencil:wght@400;700&display=swap');
-    /* Main app background */
     .stApp {
         background-color: #d8d2ea;
         color: #333333;
     }
-    /* Tabs styling */
     .stTabs [data-baseweb="tab"] {
         background-color: #FFFFFF;
         color: #333333;
@@ -38,26 +35,77 @@ st.markdown("""
         color: #333333;
         border-bottom: 2px solid #333333;
     }
-    /* Form container */
     .stForm {
         background-color: #FFFFFF;
         border: 1px solid #d8d2ea;
         border-radius: 10px;
         padding: 20px;
     }
-    /* Buttons */
-    .stButton>button {
+    @media (max-width: 768px) {
+        .stForm {
+            background-color: #000000;
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div {
+            background-color: #333333;
+            border: 1px solid #FFFFFF;
+            color: #FFFFFF;
+        }
+        .stTextInput label, .stSelectbox label, .stMultiSelect label {
+            color: #FFFFFF;
+        }
+    }
+    /* Submit Enquiry and Login buttons (dark green) */
+    .stForm [data-testid="stFormSubmitButton"]>button {
+        background-color: #006400;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+    }
+    .stForm [data-testid="stFormSubmitButton"]>button:hover {
+        background-color: #004d00;
+        color: #FFFFFF;
+    }
+    /* Download Excel button (dark green) */
+    div[data-testid="stDownloadButton"] button[download*="xlsx"] {
+        background-color: #006400;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+    }
+    div[data-testid="stDownloadButton"] button[download*="xlsx"]:hover {
+        background-color: #004d00;
+        color: #FFFFFF;
+    }
+    /* Download PDF button (dark red) */
+    div[data-testid="stDownloadButton"] button[download*="pdf"] {
+        background-color: #8B0000;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+    }
+    div[data-testid="stDownloadButton"] button[download*="pdf"]:hover {
+        background-color: #6B0000;
+        color: #FFFFFF;
+    }
+    /* Other buttons (e.g., Logout) */
+    .stButton>button:not([data-testid="stFormSubmitButton"]>button):not([download*="xlsx"]):not([download*="pdf"]) {
         background-color: #333333;
         color: #FFFFFF;
         border: none;
         border-radius: 5px;
         padding: 10px 20px;
     }
-    .stButton>button:hover {
+    .stButton>button:not([data-testid="stFormSubmitButton"]>button):not([download*="xlsx"]):not([download*="pdf"]):hover {
         background-color: #555555;
         color: #FFFFFF;
     }
-    /* Headers */
     h1 {
         font-family: 'Stardos Stencil', sans-serif;
         color: #333333;
@@ -66,34 +114,29 @@ st.markdown("""
         font-family: 'Stardos Stencil', sans-serif;
         color: #d8d2ea;
     }
-    /* Text inputs and select boxes */
     .stTextInput>div>input, .stSelectbox>div>select, .stMultiSelect>div {
         background-color: #FFFFFF;
         border: 1px solid #d8d2ea;
         color: #333333;
     }
-    /* Dataframe */
     .stDataFrame {
         border: 1px solid #d8d2ea;
         background-color: #FFFFFF;
     }
-    /* Hide the Streamlit toolbar (including Deploy button) */
-    [data-testid="stToolbar"] {
-        display: none;
-    }
-    /* Hide the entire header */
-    header[data-testid="stHeader"] {
+    [data-testid="stToolbar"], header[data-testid="stHeader"] {
         display: none;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Database connection configuration using SQLAlchemy
+# Cache database connection
+@st.cache_resource
 def get_db_connection():
     connection_string = f"postgresql+psycopg2://{os.getenv('PG_USER')}:{os.getenv('PG_PASSWORD')}@{os.getenv('PG_HOST')}:{os.getenv('PG_PORT')}/{os.getenv('PG_DATABASE')}"
     return create_engine(connection_string)
 
 # Database initialization
+@st.cache_resource
 def init_db():
     engine = get_db_connection()
     with engine.connect() as conn:
@@ -112,7 +155,8 @@ def init_db():
                              )'''))
         conn.commit()
 
-# Add default owner credentials if not exists
+# Add default owner credentials
+@st.cache_resource
 def add_default_owner():
     engine = get_db_connection()
     with engine.connect() as conn:
@@ -145,26 +189,26 @@ def save_enquiry(name, email, phone, furniture_types, message):
                       "message": message, "timestamp": timestamp})
         conn.commit()
 
-# Fetch all enquiries
+# Cache enquiries fetch
+@st.cache_data
 def get_enquiries():
     engine = get_db_connection()
     return pd.read_sql_query("SELECT * FROM enquiries", engine)
 
-# Generate Excel file
+# Cache Excel generation
+@st.cache_data
 def generate_excel(df):
     output = BytesIO()
     workbook = openpyxl.Workbook()
     sheet = workbook.active
     sheet.title = "Enquiries"
     
-    # Add title
     sheet['A1'] = "Sylva Decors Inquiry List"
-    sheet.merge_cells('A1:G1')  # Merge cells across 7 columns
+    sheet.merge_cells('A1:G1')
     title_cell = sheet['A1']
     title_cell.font = openpyxl.styles.Font(bold=True, size=14)
     title_cell.alignment = openpyxl.styles.Alignment(horizontal='center')
     
-    # Add dataframe starting from row 3 (leaving row 2 blank for spacing)
     for r_idx, row in enumerate(pd.DataFrame([df.columns]).values, 2):
         for c_idx, value in enumerate(row, 1):
             sheet.cell(row=r_idx, column=c_idx).value = value
@@ -173,11 +217,10 @@ def generate_excel(df):
         for c_idx, value in enumerate(row, 1):
             sheet.cell(row=r_idx + 1, column=c_idx).value = value
     
-    # Auto-adjust column widths, skipping merged cells
-    for col_idx in range(1, 8):  # Columns A to G
+    for col_idx in range(1, 8):
         column_letter = openpyxl.utils.get_column_letter(col_idx)
         max_length = 0
-        for row in sheet[f"{column_letter}2:{column_letter}{sheet.max_row}"]:  # Start from row 2
+        for row in sheet[f"{column_letter}2:{column_letter}{sheet.max_row}"]:
             cell = row[0]
             if not isinstance(cell, openpyxl.cell.cell.MergedCell):
                 try:
@@ -185,19 +228,19 @@ def generate_excel(df):
                         max_length = len(str(cell.value))
                 except:
                     pass
-        adjusted_width = min((max_length + 2), 50)  # Cap width at 50 for readability
+        adjusted_width = min((max_length + 2), 50)
         sheet.column_dimensions[column_letter].width = adjusted_width
     
     workbook.save(output)
     return output.getvalue()
 
-# Generate PDF file
+# Cache PDF generation
+@st.cache_data
 def generate_pdf(df):
     output = BytesIO()
     doc = SimpleDocTemplate(output, pagesize=letter, leftMargin=36, rightMargin=36, topMargin=36, bottomMargin=36)
     elements = []
     
-    # Define styles
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle(
         name='TitleStyle',
@@ -205,7 +248,7 @@ def generate_pdf(df):
         fontName='Helvetica-Bold',
         fontSize=12,
         spaceAfter=12,
-        alignment=1,  # Center
+        alignment=1,
     )
     cell_style = ParagraphStyle(
         name='CellStyle',
@@ -213,37 +256,25 @@ def generate_pdf(df):
         fontName='Helvetica',
         fontSize=8,
         leading=10,
-        wordWrap='CJK',  # Enables word wrapping
-        alignment=1,  # Center
+        wordWrap='CJK',
+        alignment=1,
     )
     
-    # Add title
     title = Paragraph("Sylva Decors Inquiry List", title_style)
     elements.append(title)
-    elements.append(Spacer(1, 12))  # Add spacing after title
+    elements.append(Spacer(1, 12))
     
-    # Prepare data for PDF table
     data = [df.columns.tolist()] + df.values.tolist()
-    
-    # Convert all cells to Paragraphs for wrapping, except header
     wrapped_data = []
     for i, row in enumerate(data):
-        if i == 0:  # Header row
-            wrapped_row = [Paragraph(str(cell), styles['Heading4']) for cell in row]
-        else:  # Data rows
-            wrapped_row = [Paragraph(str(cell) if cell else "", cell_style) for cell in row]
+        wrapped_row = [Paragraph(str(cell), styles['Heading4'] if i == 0 else cell_style) for cell in row]
         wrapped_data.append(wrapped_row)
     
-    # Define column widths to fit letter page (612pt width, minus 72pt margins = 540pt)
-    col_widths = [40, 80, 100, 80, 140, 80, 80]  # Adjusted for id, name, email, phone, furniture_type, message, timestamp
-    
-    # Create table
+    col_widths = [40, 80, 100, 80, 140, 80, 80]
     table = Table(wrapped_data, colWidths=col_widths)
-    
-    # Style the table with white and #d8d2ea
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#d8d2ea')),  # Header background
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),  # Header text
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#d8d2ea')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 8),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
@@ -252,23 +283,29 @@ def generate_pdf(df):
         ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
         ('TOPPADDING', (0, 0), (-1, -1), 4),
         ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.white),  # Body background
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d8d2ea')),  # Grid lines
-        ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#d8d2ea')),  # Table border
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d8d2ea')),
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#d8d2ea')),
     ]))
     
     elements.append(table)
     doc.build(elements)
     return output.getvalue()
 
-# Initialize database and default owner
+# Initialize database and owner
 init_db()
 add_default_owner()
+
+# Initialize session state
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
+if 'session_initialized' not in st.session_state:
+    st.session_state.session_initialized = True
 
 # Tabs for Enquiry Form and Owner Login
 tab1, tab2 = st.tabs(["Enquiry Form", "Owner Login"])
 
-# Enquiry Form (Publicly Accessible)
+# Enquiry Form
 with tab1:
     st.title("Sylva Decors Enquiry Form")
     st.write("Interested in our resin-based furniture? Fill out the form below!")
@@ -280,25 +317,13 @@ with tab1:
         furniture_types = st.multiselect(
             "Furniture Types",
             [
-                "Resin Furniture- Coffee Table",
-                "Resin Furniture-Center Table",
-                "Resin Furniture- Wall Panels",
-                "Resin Furniture- Dining Table",
-                "Resin Furniture- Conference Table",
-                "Wall Decors - Geocode Wall Art",
-                "Wall Decors-Ocean Inspired Wall Panels",
-                "Wall Decors - Resin Wall Clock",
-                "Functional Decors - Theme Based Coaster Set",
-                "Functional Decors - Wood Resin Trays",
-                "Functional Decors - Customized Name Plates",
-                "Preservation Arts - Wedding Varmala's & Florals",
-                "Preservation Art - Umbilical Cords",
-                "Preservation Art - Pet Keepsakes",
-                "Corporate Corner - Corporate Gifting",
-                "Corporate Corner - Resin Trophies & Medals",
-                "Corporate Corner - Artistic Resin Furniture & Corporate Spaces"
+                "Resin Furniture",
+                "Wall Decors",
+                "Functional Decors",
+                "Preservation Arts",
+                "Corporate Corner"
             ],
-            default=[]  # No default selections
+            default=[]
         )
         message = st.text_area("Message/Requirements")
         submit_button = st.form_submit_button("Submit Enquiry")
@@ -313,10 +338,6 @@ with tab1:
 # Owner Login and Dashboard
 with tab2:
     st.title("Owner Login - Sylva Decors")
-
-    # Session state for login
-    if 'logged_in' not in st.session_state:
-        st.session_state.logged_in = False
 
     if not st.session_state.logged_in:
         with st.form("login_form"):
@@ -335,12 +356,10 @@ with tab2:
         st.subheader("Owner Dashboard")
         st.write("View and download customer enquiries.")
 
-        # Fetch and display enquiries
         enquiries = get_enquiries()
         if not enquiries.empty:
             st.dataframe(enquiries, use_container_width=True)
             
-            # Download buttons
             col1, col2, col3 = st.columns([1, 1, 1])
             with col1:
                 excel_data = generate_excel(enquiries)
