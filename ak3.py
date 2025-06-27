@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 from io import BytesIO
 import openpyxl
 from sqlalchemy import create_engine, text
-from sqlalchemy.exc import OperationalError
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
@@ -59,6 +58,7 @@ st.markdown("""
             color: #FFFFFF;
         }
     }
+    /* Submit Enquiry and Login buttons (dark green) */
     .stForm [data-testid="stFormSubmitButton"]>button {
         background-color: #006400;
         color: #FFFFFF;
@@ -70,6 +70,7 @@ st.markdown("""
         background-color: #004d00;
         color: #FFFFFF;
     }
+    /* Download Excel button (dark green) */
     div[data-testid="stDownloadButton"] button[download*="xlsx"] {
         background-color: #006400;
         color: #FFFFFF;
@@ -81,6 +82,7 @@ st.markdown("""
         background-color: #004d00;
         color: #FFFFFF;
     }
+    /* Download PDF button (dark red) */
     div[data-testid="stDownloadButton"] button[download*="pdf"] {
         background-color: #8B0000;
         color: #FFFFFF;
@@ -92,6 +94,7 @@ st.markdown("""
         background-color: #6B0000;
         color: #FFFFFF;
     }
+    /* Other buttons (e.g., Logout) */
     .stButton>button:not([data-testid="stFormSubmitButton"]>button):not([download*="xlsx"]):not([download*="pdf"]) {
         background-color: #333333;
         color: #FFFFFF;
@@ -126,149 +129,71 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Validate environment variables
-def check_env_vars():
-    required_vars = ['PG_USER', 'PG_PASSWORD', 'PG_HOST', 'PG_PORT', 'PG_DATABASE']
-    missing_vars = [var for var in required_vars if not os.getenv(var)]
-    if missing_vars:
-        st.error(f"Missing environment variables: {', '.join(missing_vars)}. Please set them in your environment or .env file.")
-        return False
-    return True
-
-# Cache database connection with error handling
+# Cache database connection
 @st.cache_resource
 def get_db_connection():
-    if not check_env_vars():
-        return None
-    try:
-        connection_string = f"postgresql+psycopg2://{os.getenv('PG_USER')}:{os.getenv('PG_PASSWORD')}@{os.getenv('PG_HOST')}:{os.getenv('PG_PORT')}/{os.getenv('PG_DATABASE')}?connect_timeout=10"
-        engine = create_engine(connection_string)
-        # Test the connection
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        return engine
-    except OperationalError as e:
-        st.error(f"Database connection failed: {str(e)}")
-        st.info("The app will store enquiries locally until the database is accessible.")
-        return None
-    except Exception as e:
-        st.error(f"An unexpected error occurred while connecting to the database: {str(e)}")
-        return None
+    connection_string = f"postgresql+psycopg2://{os.getenv('PG_USER')}:{os.getenv('PG_PASSWORD')}@{os.getenv('PG_HOST')}:{os.getenv('PG_PORT')}/{os.getenv('PG_DATABASE')}"
+    return create_engine(connection_string)
 
 # Database initialization
+@st.cache_resource
 def init_db():
     engine = get_db_connection()
-    if engine is None:
-        return False
-    try:
-        with engine.connect() as conn:
-            conn.execute(text('''CREATE TABLE IF NOT EXISTS enquiries (
-                                id SERIAL PRIMARY KEY,
-                                name VARCHAR(255),
-                                email VARCHAR(255),
-                                phone VARCHAR(255),
-                                furniture_type VARCHAR(255),
-                                message TEXT,
-                                timestamp TIMESTAMP
-                                )'''))
-            conn.execute(text('''CREATE TABLE IF NOT EXISTS users (
-                                username VARCHAR(255) PRIMARY KEY,
-                                password VARCHAR(255)
-                                )'''))
-            conn.commit()
-        return True
-    except Exception as e:
-        st.error(f"Failed to initialize database: {str(e)}")
-        return False
+    with engine.connect() as conn:
+        conn.execute(text('''CREATE TABLE IF NOT EXISTS enquiries (
+                             id SERIAL PRIMARY KEY,
+                             name VARCHAR(255),
+                             email VARCHAR(255),
+                             phone VARCHAR(255),
+                             furniture_type VARCHAR(255),
+                             message TEXT,
+                             timestamp TIMESTAMP
+                             )'''))
+        conn.execute(text('''CREATE TABLE IF NOT EXISTS users (
+                             username VARCHAR(255) PRIMARY KEY,
+                             password VARCHAR(255)
+                             )'''))
+        conn.commit()
 
 # Add default owner credentials
+@st.cache_resource
 def add_default_owner():
     engine = get_db_connection()
-    if engine is None:
-        return False
-    try:
-        with engine.connect() as conn:
-            result = conn.execute(text("SELECT * FROM users WHERE username = :username"), {"username": "owner"}).fetchone()
-            if not result:
-                hashed = bcrypt.hashpw('sylva123'.encode('utf-8'), bcrypt.gensalt())
-                conn.execute(text("INSERT INTO users (username, password) VALUES (:username, :password)"),
-                            {"username": "owner", "password": hashed.decode('utf-8')})
-                conn.commit()
-        return True
-    except Exception as e:
-        st.error(f"Failed to add default owner: {str(e)}")
-        return False
+    with engine.connect() as conn:
+        result = conn.execute(text("SELECT * FROM users WHERE username = :username"), {"username": "owner"}).fetchone()
+        if not result:
+            hashed = bcrypt.hashpw('sylva123'.encode('utf-8'), bcrypt.gensalt())
+            conn.execute(text("INSERT INTO users (username, password) VALUES (:username, :password)"),
+                         {"username": "owner", "password": hashed.decode('utf-8')})
+            conn.commit()
 
 # Verify login credentials
 def verify_login(username, password):
     engine = get_db_connection()
-    if engine is None:
-        return False
-    try:
-        with engine.connect() as conn:
-            result = conn.execute(text("SELECT password FROM users WHERE username = :username"), {"username": username}).fetchone()
-            if result:
-                stored_password = result[0]
-                return bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8'))
-            return False
-    except Exception as e:
-        st.error(f"Login verification failed: {str(e)}")
+    with engine.connect() as conn:
+        result = conn.execute(text("SELECT password FROM users WHERE username = :username"), {"username": username}).fetchone()
+        if result:
+            stored_password = result[0]
+            return bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8'))
         return False
 
-# Save enquiry to database or local storage
+# Save enquiry to database
 def save_enquiry(name, email, phone, furniture_types, message):
     engine = get_db_connection()
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    furniture_type_str = ", ".join(furniture_types) if furniture_types else ""
-    enquiry_data = {
-        "name": name,
-        "email": email,
-        "phone": phone,
-        "furniture_type": furniture_type_str,
-        "message": message,
-        "timestamp": timestamp
-    }
-    
-    if engine:
-        try:
-            with engine.connect() as conn:
-                conn.execute(text('''INSERT INTO enquiries (name, email, phone, furniture_type, message, timestamp)
-                                    VALUES (:name, :email, :phone, :furniture_type, :message, :timestamp)'''),
-                            enquiry_data)
-                conn.commit()
-            return True
-        except Exception as e:
-            st.error(f"Failed to save enquiry to database: {str(e)}. Storing locally.")
-            # Fallback to local storage
-            if 'enquiries' not in st.session_state:
-                st.session_state.enquiries = []
-            st.session_state.enquiries.append(enquiry_data)
-            return True
-    else:
-        # Store in session state if database is unavailable
-        if 'enquiries' not in st.session_state:
-            st.session_state.enquiries = []
-        st.session_state.enquiries.append(enquiry_data)
-        return True
+    with engine.connect() as conn:
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        furniture_type_str = ", ".join(furniture_types) if furniture_types else ""
+        conn.execute(text('''INSERT INTO enquiries (name, email, phone, furniture_type, message, timestamp)
+                             VALUES (:name, :email, :phone, :furniture_type, :message, :timestamp)'''),
+                     {"name": name, "email": email, "phone": phone, "furniture_type": furniture_type_str,
+                      "message": message, "timestamp": timestamp})
+        conn.commit()
 
-# Fetch enquiries from database or local storage
+# Cache enquiries fetch
 @st.cache_data
 def get_enquiries():
     engine = get_db_connection()
-    if engine:
-        try:
-            df = pd.read_sql_query("SELECT * FROM enquiries", engine)
-            # Append local enquiries if any
-            if 'enquiries' in st.session_state and st.session_state.enquiries:
-                local_df = pd.DataFrame(st.session_state.enquiries)
-                df = pd.concat([df, local_df], ignore_index=True)
-            return df
-        except Exception as e:
-            st.error(f"Failed to fetch enquiries: {str(e)}. Displaying local enquiries.")
-    # Return local enquiries if database is unavailable
-    if 'enquiries' in st.session_state and st.session_state.enquiries:
-        return pd.DataFrame(st.session_state.enquiries)
-    return pd.DataFrame(columns=["id", "name", "email", "phone", "furniture_type", "message", "timestamp"])
+    return pd.read_sql_query("SELECT * FROM enquiries", engine)
 
 # Cache Excel generation
 @st.cache_data
@@ -368,10 +293,8 @@ def generate_pdf(df):
     return output.getvalue()
 
 # Initialize database and owner
-if not init_db():
-    st.warning("Database initialization failed. Enquiries will be stored locally.")
-if not add_default_owner():
-    st.warning("Failed to add default owner. Login may not work.")
+init_db()
+add_default_owner()
 
 # Initialize session state
 if 'logged_in' not in st.session_state:
@@ -407,10 +330,8 @@ with tab1:
 
         if submit_button:
             if name and email and phone and furniture_types:
-                if save_enquiry(name, email, phone, furniture_types, message):
-                    st.success("Enquiry submitted successfully!")
-                else:
-                    st.error("Failed to submit enquiry. Please try again later.")
+                save_enquiry(name, email, phone, furniture_types, message)
+                st.success("Enquiry submitted successfully!")
             else:
                 st.error("Please fill all required fields (Name, Email, Phone, Furniture Types).")
 
