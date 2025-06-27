@@ -11,6 +11,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+import re
 
 # Load environment variables
 load_dotenv()
@@ -129,6 +130,13 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# Input validation functions
+def validate_email(email):
+    return bool(re.match(r"[^@]+@[^@]+\.[^@]+", email))
+
+def validate_phone(phone):
+    return bool(re.match(r"^\+?\d{10,15}$", phone))
+
 # Cache database connection
 @st.cache_resource
 def get_db_connection():
@@ -179,15 +187,19 @@ def verify_login(username, password):
 
 # Save enquiry to database
 def save_enquiry(name, email, phone, furniture_types, message):
-    engine = get_db_connection()
-    with engine.connect() as conn:
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        furniture_type_str = ", ".join(furniture_types) if furniture_types else ""
-        conn.execute(text('''INSERT INTO enquiries (name, email, phone, furniture_type, message, timestamp)
-                             VALUES (:name, :email, :phone, :furniture_type, :message, :timestamp)'''),
-                     {"name": name, "email": email, "phone": phone, "furniture_type": furniture_type_str,
-                      "message": message, "timestamp": timestamp})
-        conn.commit()
+    try:
+        engine = get_db_connection()
+        with engine.connect() as conn:
+            furniture_type_str = ", ".join(furniture_types) if furniture_types else ""
+            conn.execute(text('''INSERT INTO enquiries (name, email, phone, furniture_type, message, timestamp)
+                                 VALUES (:name, :email, :phone, :furniture_type, :message, CURRENT_TIMESTAMP)'''),
+                         {"name": name, "email": email, "phone": phone, "furniture_type": furniture_type_str,
+                          "message": message})
+            conn.commit()
+    except Exception as e:
+        st.error(f"Failed to save enquiry: {str(e)}")
+        return False
+    return True
 
 # Cache enquiries fetch
 @st.cache_data
@@ -203,7 +215,7 @@ def generate_excel(df):
     sheet = workbook.active
     sheet.title = "Enquiries"
     
-    sheet['A1'] = "Sylva Decors Inquiry List"
+    sheet['A1'] = "Sylva Decors Enquiry List"
     sheet.merge_cells('A1:G1')
     title_cell = sheet['A1']
     title_cell.font = openpyxl.styles.Font(bold=True, size=14)
@@ -260,7 +272,7 @@ def generate_pdf(df):
         alignment=1,
     )
     
-    title = Paragraph("Sylva Decors Inquiry List", title_style)
+    title = Paragraph("Sylva Decors Enquiry List", title_style)
     elements.append(title)
     elements.append(Spacer(1, 12))
     
@@ -329,11 +341,20 @@ with tab1:
         submit_button = st.form_submit_button("Submit Enquiry")
 
         if submit_button:
-            if name and email and phone and furniture_types:
-                save_enquiry(name, email, phone, furniture_types, message)
-                st.success("Enquiry submitted successfully!")
+            if not name:
+                st.error("Please provide your full name.")
+            elif not validate_email(email):
+                st.error("Please provide a valid email address.")
+            elif not validate_phone(phone):
+                st.error("Please provide a valid phone number (10-15 digits, optional '+' prefix).")
+            elif not furniture_types:
+                st.error("Please select at least one furniture type.")
             else:
-                st.error("Please fill all required fields (Name, Email, Phone, Furniture Types).")
+                if save_enquiry(name, email, phone, furniture_types, message):
+                    st.success(f"Enquiry submitted successfully!\n\nDetails:\n- Name: {name}\n- Email: {email}\n- Phone: {phone}\n- Furniture Types: {', '.join(furniture_types)}\n- Message: {message}")
+                    st.cache_data.clear()  # Clear cached data to refresh dashboard
+                else:
+                    st.error("Failed to submit enquiry. Please try again.")
 
 # Owner Login and Dashboard
 with tab2:
