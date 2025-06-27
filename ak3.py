@@ -203,7 +203,7 @@ def generate_excel(df):
     sheet = workbook.active
     sheet.title = "Enquiries"
     
-    sheet['A1'] = "Sylva Decors Inquiry List"
+    sheet['A1'] = "Sylva Decors Enquiry List"
     sheet.merge_cells('A1:G1')
     title_cell = sheet['A1']
     title_cell.font = openpyxl.styles.Font(bold=True, size=14)
@@ -260,7 +260,7 @@ def generate_pdf(df):
         alignment=1,
     )
     
-    title = Paragraph("Sylva Decors Inquiry List", title_style)
+    title = Paragraph("Sylva Decors Enquiry List", title_style)
     elements.append(title)
     elements.append(Spacer(1, 12))
     
